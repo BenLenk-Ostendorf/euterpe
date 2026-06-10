@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: #14100d;
+  color: #efe6d6;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* warmer, leicht radialer Glow — Jazz-Club-Stimmung statt flachem Schwarz */
+  background-image: radial-gradient(
+    120% 90% at 50% -10%,
+    #2a201a 0%,
+    #1c1713 38%,
+    #14100d 100%
+  );
+  background-attachment: fixed;
+}
+
+/* Sichtbarer Tastatur-Fokus (Accessibility) */
+:focus-visible {
+  outline: 2px solid #e0b15e;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Reduced Motion respektieren */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
