@@ -5,7 +5,13 @@
 export type SkillCat = 'mec' | 'wis' | 'geh' | 'anw' | 'ziel'
 
 /** Spielbare Challenge zu einem Lernziel (sofern vorhanden). */
-export type ChallengeId = 'notenregen'
+export type ChallengeId = 'tastenfinder' | 'notenregen'
+
+/** Anzeige-Name einer Challenge (für Listen/Buttons). */
+export const CHALLENGE_LABEL: Record<ChallengeId, string> = {
+  tastenfinder: 'Tastenfinder',
+  notenregen: 'Notenregen',
+}
 
 export interface Skill {
   id: string
@@ -48,17 +54,18 @@ export const TIERS: Skill[][] = [
       cat: 'mec',
       label: 'Du kannst jede Taste benennen.',
       detail:
-        'Finde zu jedem Tonnamen blind die Taste. Die zwei und drei schwarzen Tasten sind deine Orientierungs-Anker.',
+        'Finde zu jedem Tonnamen blind die Taste. Die zwei und drei schwarzen Tasten sind deine Orientierungs-Anker. Geschafft ist es, wenn du alle Tasten ruhig und ohne Beschriftung findest — mit beiden Händen.',
       deps: [],
-      challenge: 'notenregen',
+      challenge: 'tastenfinder',
     },
     {
       id: 'p1',
       cat: 'mec',
       label: 'Du kannst im gleichmäßigen Puls spielen.',
       detail:
-        'Ein Ton pro Metronom-Klick, ohne zu eilen oder zu schleppen. Der Puls ist wichtiger als die Melodie.',
+        'Ein Ton pro Puls, ohne zu eilen oder zu schleppen. Der Puls ist wichtiger als die Melodie — im Notenregen triffst du die Tasten im steten Takt der fallenden Kacheln.',
       deps: [],
+      challenge: 'notenregen',
     },
     {
       id: 'g0',

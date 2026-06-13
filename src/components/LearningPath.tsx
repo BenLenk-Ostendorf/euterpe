@@ -4,6 +4,7 @@ import {
   ALL_SKILLS,
   CATEGORIES,
   CATEGORY_COLOR,
+  CHALLENGE_LABEL,
   type ChallengeId,
   type Skill,
 } from '../music/learningPath'
@@ -168,16 +169,26 @@ export default function LearningPath({
                 const isGoal = skill.cat === 'ziel'
                 const isSel = selected?.id === skill.id
                 const color = CATEGORY_COLOR[skill.cat]
+                const playable = skill.challenge && onStartChallenge
                 return (
                   <button
                     key={skill.id}
                     ref={setNodeRef(skill.id)}
                     type="button"
+                    title={
+                      playable
+                        ? `Übung „${CHALLENGE_LABEL[skill.challenge!]}" starten`
+                        : undefined
+                    }
                     onMouseEnter={() => setHovered(skill.id)}
                     onMouseLeave={() => setHovered(null)}
                     onFocus={() => setHovered(skill.id)}
                     onBlur={() => setHovered(null)}
-                    onClick={() => setSelected(skill)}
+                    onClick={() =>
+                      playable
+                        ? onStartChallenge!(skill.challenge!)
+                        : setSelected(skill)
+                    }
                     className={`ease-soft flex max-w-[210px] flex-1 basis-[150px] items-center rounded-xl border px-3 py-2.5 text-left text-[13px] leading-snug text-bone transition-all duration-150 hover:-translate-y-0.5 ${
                       isGoal ? 'justify-center text-center font-display' : ''
                     }`}
@@ -202,6 +213,15 @@ export default function LearningPath({
                       fontSize: isGoal ? 15 : undefined,
                     }}
                   >
+                    {playable && (
+                      <span
+                        aria-hidden
+                        className="mr-1.5 text-amber-soft"
+                        title="spielbare Übung"
+                      >
+                        ▶
+                      </span>
+                    )}
                     {skill.label}
                   </button>
                 )
@@ -246,10 +266,35 @@ export default function LearningPath({
         ) : (
           <p className="text-sm text-bone/40">
             Wähl ein Lernziel aus, um zu sehen, worum es geht und worauf es dabei
-            ankommt.
+            ankommt. Ziele mit ▶ haben eine spielbare Übung — direkt anklicken.
           </p>
         )}
       </div>
+
+      {/* Liste der spielbaren Übungen */}
+      {onStartChallenge && (
+        <div className="flex flex-col gap-2">
+          <p className="text-xs uppercase tracking-wider text-bone/40">
+            Übungen zum Mitspielen
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {ALL_SKILLS.filter((s) => s.challenge).map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => onStartChallenge(s.challenge!)}
+                className="ease-soft flex items-center gap-2 rounded-full border border-amber-glow/40 bg-ink-700/60 px-4 py-1.5 text-sm text-amber-soft transition-all hover:border-amber-glow hover:bg-ink-600"
+              >
+                <span aria-hidden>▶</span>
+                <span className="font-medium">
+                  {CHALLENGE_LABEL[s.challenge!]}
+                </span>
+                <span className="text-bone/45">— {s.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
