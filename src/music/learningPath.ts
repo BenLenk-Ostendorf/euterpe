@@ -13,6 +13,11 @@ export const CHALLENGE_LABEL: Record<ChallengeId, string> = {
   notenregen: 'Notenregen',
 }
 
+// Spielbare Artefakte, die (noch) keinem Lernziel zugeordnet sind. Der
+// Notenregen ist als Spiel erhalten, aber bewusst nicht an p1 „Puls" gehängt
+// — dafür gibt es vermutlich ein besseres Spielkonzept (noch offen).
+export const STANDALONE_CHALLENGES: ChallengeId[] = ['notenregen']
+
 export interface Skill {
   id: string
   cat: SkillCat
@@ -63,9 +68,8 @@ export const TIERS: Skill[][] = [
       cat: 'mec',
       label: 'Du kannst im gleichmäßigen Puls spielen.',
       detail:
-        'Ein Ton pro Puls, ohne zu eilen oder zu schleppen. Der Puls ist wichtiger als die Melodie — im Notenregen triffst du die Tasten im steten Takt der fallenden Kacheln.',
+        'Ein Ton pro Puls, ohne zu eilen oder zu schleppen. Der Puls ist wichtiger als die Melodie.',
       deps: [],
-      challenge: 'notenregen',
     },
     {
       id: 'g0',

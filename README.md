@@ -41,11 +41,12 @@ npm run preview  # gebauten Build lokal servieren
   echte Können: *erreicht* (jede Taste der Hand einmal gefunden, Beschriftung erlaubt)
   → *verinnerlicht* (alle Tasten der Hand blind & sicher) → *gemeistert* (beide Hände
   blind & fehlerfrei = Lernziel erfüllt). Tempo ist bewusst kein Kriterium.
-- **Notenregen:** Challenge zum Lernziel p1 „Du kannst im gleichmäßigen Puls spielen".
-  Tonnamen fallen in der Spur ihrer Taste herab; erreicht ein Name die Trefferlinie,
-  trifft man die Taste im steten Takt. Tempo und Tastenumfang passen sich an die
-  laufenden Treffer an. (Bewusst ein Reaktions-/Timing-Spiel — fürs *Benennen* taugt
-  es nicht, weil die Kachel über ihrer Taste fällt; dafür ist der Tastenfinder da.)
+- **Notenregen (Artefakt):** Tonnamen fallen in der Spur ihrer Taste herab; erreicht
+  ein Name die Trefferlinie, trifft man die Taste im steten Takt. Ein Reaktions-/
+  Timing-Spiel — fürs *Benennen* taugt es nicht (die Kachel fällt über ihrer Taste,
+  man schaut nur ab; dafür ist der Tastenfinder da). Bewusst **keinem Lernziel
+  zugeordnet**: als Spiel erhalten, aber fürs Takthalten gibt es vermutlich ein
+  besseres Konzept (noch offen). Erreichbar über die Übungsliste im Lernpfad.
 
 ## Bedienung
 

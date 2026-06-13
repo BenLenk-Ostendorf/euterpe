@@ -5,6 +5,7 @@ import {
   CATEGORIES,
   CATEGORY_COLOR,
   CHALLENGE_LABEL,
+  STANDALONE_CHALLENGES,
   type ChallengeId,
   type Skill,
 } from '../music/learningPath'
@@ -290,6 +291,18 @@ export default function LearningPath({
                   {CHALLENGE_LABEL[s.challenge!]}
                 </span>
                 <span className="text-bone/45">— {s.label}</span>
+              </button>
+            ))}
+            {STANDALONE_CHALLENGES.map((id) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => onStartChallenge(id)}
+                className="ease-soft flex items-center gap-2 rounded-full border border-bone/15 bg-ink-700/40 px-4 py-1.5 text-sm text-bone/70 transition-all hover:border-amber-glow/50 hover:text-amber-soft"
+              >
+                <span aria-hidden>▶</span>
+                <span className="font-medium">{CHALLENGE_LABEL[id]}</span>
+                <span className="text-bone/40">— Artefakt, noch keinem Ziel zugeordnet</span>
               </button>
             ))}
           </div>
