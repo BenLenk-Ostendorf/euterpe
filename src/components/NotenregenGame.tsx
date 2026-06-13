@@ -73,16 +73,27 @@ interface Stats {
   accuracy: number
   samples: number
   level: number
+  phase: number
   flow: boolean[]
   erreicht: boolean
   verinnerlicht: boolean
   gemeistert: boolean
 }
 
-// Schwierigkeit (0..1) -> Falldauer und Spawn-Abstand.
+// Tempo (0..1) -> Falldauer und Spawn-Abstand.
 const fallDurationFor = (lvl: number) => 3000 - lvl * 1300 // 3.0s … 1.7s
 const spawnIntervalFor = (lvl: number) => 1700 - lvl * 850 // 1.7s … 0.85s
-const includeBlackFor = (lvl: number) => lvl >= 0.5
+
+// Tastenumfang wächst stufenweise: erst weiß, dann zwei Landmarken-Schwarze
+// (C#, F#), dann alle. Bei jedem Schritt wird das Tempo wieder gedrosselt,
+// damit die neuen Tasten nicht zugleich mit hohem Tempo kommen.
+const BLACK_STEP1 = [1, 6] // C#, F#
+function poolForPhase(phase: number): number[] {
+  if (phase <= 0) return WHITE_PCS
+  if (phase === 1) return [...WHITE_PCS, ...BLACK_STEP1]
+  return [...WHITE_PCS, ...BLACK_PCS]
+}
+const PHASE_LABEL = ['weiße Tasten', 'weiß + 2 schwarze', 'alle Tasten']
 
 export default function NotenregenGame({ onExit }: { onExit: () => void }) {
   const activeNotes = useSessionStore((s) => s.activeNotes)
@@ -92,7 +103,8 @@ export default function NotenregenGame({ onExit }: { onExit: () => void }) {
   const flashesRef = useRef<Map<number, Flash>>(new Map())
   const resultsRef = useRef<boolean[]>([])
   const seenHitsRef = useRef<Set<number>>(new Set())
-  const levelRef = useRef(0)
+  const levelRef = useRef(0) // Tempo innerhalb der aktuellen Phase
+  const phaseRef = useRef(0) // Tastenumfang-Stufe (0=weiß, 1=+2 schwarz, 2=alle)
   const nextSpawnRef = useRef(0)
   const lastPcRef = useRef(-1)
   const idRef = useRef(0)
@@ -104,6 +116,7 @@ export default function NotenregenGame({ onExit }: { onExit: () => void }) {
     accuracy: 0,
     samples: 0,
     level: 0,
+    phase: 0,
     flow: [],
     erreicht: false,
     verinnerlicht: false,
@@ -117,15 +130,16 @@ export default function NotenregenGame({ onExit }: { onExit: () => void }) {
       const samples = results.length
       const accuracy = samples ? results.filter(Boolean).length / samples : 0
       const lvl = levelRef.current
-      const black = includeBlackFor(lvl)
+      const phase = phaseRef.current
       const erreicht = WHITE_PCS.every((pc) => seenHitsRef.current.has(pc))
-      const verinnerlicht = samples >= 16 && accuracy >= 0.85 && lvl >= 0.45
+      const verinnerlicht = samples >= 16 && accuracy >= 0.85 && phase >= 1
       const gemeistert =
-        samples >= 16 && accuracy >= 0.9 && lvl >= 0.8 && black
+        samples >= 16 && accuracy >= 0.9 && phase >= 2 && lvl >= 0.8
       setStats({
         accuracy,
         samples,
         level: lvl,
+        phase,
         flow: results.slice(-10),
         erreicht,
         verinnerlicht,
@@ -143,6 +157,12 @@ export default function NotenregenGame({ onExit }: { onExit: () => void }) {
         if (rate > 0.85) levelRef.current = Math.min(1, levelRef.current + 0.06)
         else if (rate < 0.6)
           levelRef.current = Math.max(0, levelRef.current - 0.08)
+        // Sitzt die aktuelle Tastengruppe schnell, kommen neue Tasten dazu —
+        // und das Tempo wird dafür wieder gedrosselt (kein Doppel-Sprung).
+        if (phaseRef.current < 2 && levelRef.current >= 0.9 && rate > 0.85) {
+          phaseRef.current += 1
+          levelRef.current = 0.3
+        }
       }
       recomputeStats()
     }
@@ -183,9 +203,7 @@ export default function NotenregenGame({ onExit }: { onExit: () => void }) {
       if (!pausedRef.current) {
         const lvl = levelRef.current
         while (now >= nextSpawnRef.current && tilesRef.current.length < 5) {
-          const pool = includeBlackFor(lvl)
-            ? [...WHITE_PCS, ...BLACK_PCS]
-            : WHITE_PCS
+          const pool = poolForPhase(phaseRef.current)
           const falling = new Set(
             tilesRef.current.filter((t) => !t.resolved).map((t) => t.pc),
           )
@@ -283,6 +301,7 @@ export default function NotenregenGame({ onExit }: { onExit: () => void }) {
     resultsRef.current = []
     seenHitsRef.current.clear()
     levelRef.current = 0
+    phaseRef.current = 0
     lastPcRef.current = -1
     idRef.current = 0
     nextSpawnRef.current = performance.now() + 600
@@ -293,6 +312,7 @@ export default function NotenregenGame({ onExit }: { onExit: () => void }) {
       accuracy: 0,
       samples: 0,
       level: 0,
+      phase: 0,
       flow: [],
       erreicht: false,
       verinnerlicht: false,
@@ -345,8 +365,8 @@ export default function NotenregenGame({ onExit }: { onExit: () => void }) {
           <span className="tabular-nums">
             {stats.samples ? Math.round(stats.accuracy * 100) : 0}% richtig
           </span>
-          <span className="flex items-center gap-1.5" title="Niveau / Tempo">
-            Niveau
+          <span className="flex items-center gap-1.5" title="Tempo">
+            Tempo
             {Array.from({ length: 5 }).map((_, i) => (
               <span
                 key={i}
@@ -357,6 +377,12 @@ export default function NotenregenGame({ onExit }: { onExit: () => void }) {
                 }}
               />
             ))}
+          </span>
+          <span
+            className="rounded-full border border-bone/15 px-2.5 py-0.5"
+            title="Aktueller Tastenumfang — wächst stufenweise"
+          >
+            {PHASE_LABEL[stats.phase]}
           </span>
         </div>
       </div>
@@ -513,8 +539,9 @@ export default function NotenregenGame({ onExit }: { onExit: () => void }) {
       </div>
 
       <p className="text-center text-sm text-bone/45">
-        Spiel die Taste, deren Name die Linie erreicht. Je runder es läuft, desto
-        schneller wird der Regen — bleibt es schwierig, wird er wieder ruhiger.
+        Spiel die Taste, deren Name die Linie erreicht. Läuft es rund, wird der
+        Regen schneller; sitzt eine Tastengruppe, kommen neue Tasten dazu — und
+        das Tempo wird dafür erst mal wieder ruhiger.
       </p>
     </div>
   )
