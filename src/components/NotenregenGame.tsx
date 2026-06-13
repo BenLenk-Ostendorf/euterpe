@@ -284,7 +284,7 @@ export default function NotenregenGame({ onExit }: { onExit: () => void }) {
   const handleUp = (pc: number) => () => stopNote(OCTAVE_BASE + pc)
 
   return (
-    <div className="flex w-full flex-col gap-5">
+    <div className="flex w-full flex-col gap-4">
       {/* Kopfzeile: zurück, Titel, Fluss + Quote + Niveau */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <button
@@ -338,9 +338,9 @@ export default function NotenregenGame({ onExit }: { onExit: () => void }) {
       </div>
 
       {/* Spielfeld + Klaviatur */}
-      <div className="relative w-full rounded-xl bg-ink-800/40 p-3 ring-1 ring-black/40 sm:p-4">
+      <div className="relative mx-auto w-full max-w-3xl rounded-xl bg-ink-800/40 p-3 ring-1 ring-black/40 sm:p-4">
         {/* Fallbahn */}
-        <div className="relative h-64 w-full overflow-hidden sm:h-80">
+        <div className="relative h-44 w-full overflow-hidden sm:h-52">
           <div
             className="absolute bottom-0 left-0 right-0"
             style={{ height: 2, background: GOLD, opacity: 0.55 }}
@@ -368,11 +368,8 @@ export default function NotenregenGame({ onExit }: { onExit: () => void }) {
 
         {/* Klaviatur (eine Oktave C4–B4) */}
         <div
-          className="relative mt-2 w-full select-none"
-          style={{
-            aspectRatio: `${WHITE_PCS.length * 1.1} / 4.4`,
-            touchAction: 'none',
-          }}
+          className="relative mt-2 h-40 w-full select-none sm:h-48"
+          style={{ touchAction: 'none' }}
         >
           {WHITE_PCS.map((pc, wi) => {
             const active = activeNotes.has(OCTAVE_BASE + pc)
