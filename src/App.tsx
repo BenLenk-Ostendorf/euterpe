@@ -20,6 +20,7 @@ import Onboarding from './components/Onboarding'
 import LearningPath from './components/LearningPath'
 import NotenregenGame from './components/NotenregenGame'
 import TastenfinderGame from './components/TastenfinderGame'
+import HoertrainerGame from './components/HoertrainerGame'
 import type { ChallengeId } from './music/learningPath'
 
 // Der Lernpfad (Tree) ist die Hauptseite. Von dort lassen sich Modi
@@ -120,6 +121,8 @@ export default function App() {
       <main className="flex w-full flex-1 flex-col">
         {overlay === 'tastenfinder' ? (
           <TastenfinderGame onExit={() => setOverlay(null)} />
+        ) : overlay === 'hoertrainer' ? (
+          <HoertrainerGame onExit={() => setOverlay(null)} />
         ) : overlay === 'notenregen' ? (
           <NotenregenGame onExit={() => setOverlay(null)} />
         ) : overlay === 'free' ? (

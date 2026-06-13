@@ -5,11 +5,12 @@
 export type SkillCat = 'mec' | 'wis' | 'geh' | 'anw' | 'ziel'
 
 /** Spielbare Challenge zu einem Lernziel (sofern vorhanden). */
-export type ChallengeId = 'tastenfinder' | 'notenregen'
+export type ChallengeId = 'tastenfinder' | 'hoertrainer' | 'notenregen'
 
 /** Anzeige-Name einer Challenge (für Listen/Buttons). */
 export const CHALLENGE_LABEL: Record<ChallengeId, string> = {
   tastenfinder: 'Tastenfinder',
+  hoertrainer: 'Hörtrainer',
   notenregen: 'Notenregen',
 }
 
@@ -76,8 +77,9 @@ export const TIERS: Skill[][] = [
       cat: 'geh',
       label: 'Du kannst die Richtung einer Melodie hören.',
       detail:
-        'Geht der nächste Ton hoch, runter oder bleibt gleich? Die gröbste — und wichtigste — erste Gehör-Stufe.',
+        'Geht der nächste Ton hoch, runter oder bleibt gleich? Die gröbste — und wichtigste — erste Gehör-Stufe. Erreicht, wenn du auch feine Schritte sicher hörst — erst erkennen, dann selbst nachspielen, dann ganze Konturen.',
       deps: [],
+      challenge: 'hoertrainer',
     },
   ],
   [

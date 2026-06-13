@@ -41,6 +41,13 @@ npm run preview  # gebauten Build lokal servieren
   echte Können: *erreicht* (jede Taste der Hand einmal gefunden, Beschriftung erlaubt)
   → *verinnerlicht* (alle Tasten der Hand blind & sicher) → *gemeistert* (beide Hände
   blind & fehlerfrei = Lernziel erfüllt). Tempo ist bewusst kein Kriterium.
+- **Hörtrainer:** Challenge zum Lernziel g0 „Du kannst die Richtung einer Melodie
+  hören". Drei Stufen als eine Leiter: *Erkennen* (zwei Töne → ↑/=/↓ tippen) →
+  *Spielen* (zwei Tasten in derselben Richtung nachspielen) → *Kontur* (eine ganze
+  Phrase nachzeichnen). Gemessen wird an den **feinen Schritten** (Sekunde/Halbton,
+  „gleich", beide Richtungen), nicht an der offensichtlichen Oktave. Frage-Töne
+  klingen immer; kein Zeitdruck, keine Punkte. Skala: erreicht/verinnerlicht/gemeistert
+  je Stufe.
 - **Notenregen (Artefakt):** Tonnamen fallen in der Spur ihrer Taste herab; erreicht
   ein Name die Trefferlinie, trifft man die Taste im steten Takt. Ein Reaktions-/
   Timing-Spiel — fürs *Benennen* taugt es nicht (die Kachel fällt über ihrer Taste,
@@ -77,7 +84,8 @@ src/
 ├── components/
 │   ├── LearningPath.tsx    # Lernpfad-Ansicht (Startseite): Graph, Hover, Detail, Übungsliste
 │   ├── TastenfinderGame.tsx # Tastenfinder „jede Taste benennen" (m1): blind, ohne Zeitdruck
-│   ├── NotenregenGame.tsx  # Notenregen (p1): Tonnamen im Takt treffen (Timing/Reaktion)
+│   ├── HoertrainerGame.tsx # Hörtrainer „Richtung hören" (g0): Erkennen → Spielen → Kontur
+│   ├── NotenregenGame.tsx  # Notenregen (Artefakt): Tonnamen im Takt treffen (Timing/Reaktion)
 │   ├── Keyboard.tsx        # Bildschirmklaviatur C3–C5, Highlighting, Pointer-Input
 │   ├── TransportControls.tsx
 │   ├── BarIndicator.tsx
