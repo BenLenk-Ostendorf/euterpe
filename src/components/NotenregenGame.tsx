@@ -290,12 +290,12 @@ export default function NotenregenGame({ onExit }: { onExit: () => void }) {
         <button
           type="button"
           onClick={onExit}
-          className="ease-soft rounded-full border border-bone/15 px-3 py-1.5 text-sm text-bone/70 transition-colors hover:border-amber-glow/50 hover:text-amber-soft"
+          className="ease-soft rounded-full border border-bone/15 px-4 py-2 text-base text-bone/70 transition-colors hover:border-amber-glow/50 hover:text-amber-soft"
         >
           ← Lernpfad
         </button>
-        <h2 className="font-display text-2xl text-amber-soft">Tasten-Trainer</h2>
-        <div className="flex items-center gap-4 text-xs text-bone/60">
+        <h2 className="font-display text-3xl text-amber-soft">Tasten-Trainer</h2>
+        <div className="flex items-center gap-5 text-sm text-bone/60">
           <span
             className="flex items-center gap-1"
             title="Fluss: letzte 10 Anschläge"
@@ -305,7 +305,7 @@ export default function NotenregenGame({ onExit }: { onExit: () => void }) {
               return (
                 <span
                   key={i}
-                  className="inline-block h-2.5 w-2 rounded-sm"
+                  className="inline-block h-3.5 w-2.5 rounded-sm"
                   style={{
                     background:
                       v === undefined
@@ -321,12 +321,12 @@ export default function NotenregenGame({ onExit }: { onExit: () => void }) {
           <span className="tabular-nums">
             {stats.samples ? Math.round(stats.accuracy * 100) : 0}% richtig
           </span>
-          <span className="flex items-center gap-1" title="Niveau / Tempo">
+          <span className="flex items-center gap-1.5" title="Niveau / Tempo">
             Niveau
             {Array.from({ length: 5 }).map((_, i) => (
               <span
                 key={i}
-                className="inline-block h-1.5 w-1.5 rounded-full"
+                className="inline-block h-2.5 w-2.5 rounded-full"
                 style={{
                   background:
                     stats.level * 5 > i ? GOLD : 'rgba(239,230,214,0.18)',
@@ -340,7 +340,7 @@ export default function NotenregenGame({ onExit }: { onExit: () => void }) {
       {/* Spielfeld + Klaviatur */}
       <div className="relative w-full rounded-xl bg-ink-800/40 p-3 ring-1 ring-black/40 sm:p-4">
         {/* Fallbahn */}
-        <div className="relative h-56 w-full overflow-hidden sm:h-64">
+        <div className="relative h-64 w-full overflow-hidden sm:h-80">
           <div
             className="absolute bottom-0 left-0 right-0"
             style={{ height: 2, background: GOLD, opacity: 0.55 }}
@@ -348,13 +348,13 @@ export default function NotenregenGame({ onExit }: { onExit: () => void }) {
           {render.tiles.map((t) => (
             <div
               key={t.id}
-              className="absolute flex items-center justify-center rounded-lg text-sm font-medium"
+              className="absolute flex items-center justify-center rounded-lg text-lg font-medium"
               style={{
                 left: `${laneCenter(t.pc)}%`,
-                top: `calc(${t.topPct}% - 18px)`,
+                top: `calc(${t.topPct}% - 22px)`,
                 transform: `translateX(-50%) scale(${t.scale})`,
-                width: 40,
-                height: 32,
+                width: 54,
+                height: 44,
                 background: t.bg,
                 border: `1px solid ${t.border}`,
                 color: t.color,
@@ -370,7 +370,7 @@ export default function NotenregenGame({ onExit }: { onExit: () => void }) {
         <div
           className="relative mt-2 w-full select-none"
           style={{
-            aspectRatio: `${WHITE_PCS.length * 1.1} / 3.4`,
+            aspectRatio: `${WHITE_PCS.length * 1.1} / 4.4`,
             touchAction: 'none',
           }}
         >
@@ -402,7 +402,7 @@ export default function NotenregenGame({ onExit }: { onExit: () => void }) {
                   transform: active ? 'translateY(1.5px)' : 'none',
                 }}
               >
-                <span className="pointer-events-none text-[10px] font-medium text-ink-700/60">
+                <span className="pointer-events-none text-sm font-medium text-ink-700/60">
                   {NOTE_NAMES[pc]}
                 </span>
               </button>
@@ -439,7 +439,7 @@ export default function NotenregenGame({ onExit }: { onExit: () => void }) {
                   transform: active ? 'translateY(1.5px)' : 'none',
                 }}
               >
-                <span className="pointer-events-none mb-1 text-[8px] font-medium text-bone/70">
+                <span className="pointer-events-none mb-1 text-xs font-medium text-bone/70">
                   {NOTE_NAMES[pc]}
                 </span>
               </button>
@@ -450,7 +450,7 @@ export default function NotenregenGame({ onExit }: { onExit: () => void }) {
 
       {/* Stufen + Steuerung */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-2 text-xs">
+        <div className="flex flex-wrap gap-2 text-sm">
           {(
             [
               ['erreicht', stats.erreicht, 'Jeden weißen Ton einmal getroffen'],
@@ -461,7 +461,7 @@ export default function NotenregenGame({ onExit }: { onExit: () => void }) {
             <span
               key={label}
               title={hint}
-              className="ease-soft rounded-full border px-3 py-1 transition-colors"
+              className="ease-soft rounded-full border px-4 py-1.5 transition-colors"
               style={{
                 borderColor: on ? HIT : 'rgba(239,230,214,0.14)',
                 color: on ? HIT : 'rgba(239,230,214,0.45)',
@@ -476,13 +476,13 @@ export default function NotenregenGame({ onExit }: { onExit: () => void }) {
         <button
           type="button"
           onClick={togglePause}
-          className="ease-soft rounded-full border border-amber-glow/40 bg-ink-700/60 px-4 py-1.5 text-sm text-amber-soft transition-colors hover:border-amber-glow hover:bg-ink-600/80"
+          className="ease-soft rounded-full border border-amber-glow/40 bg-ink-700/60 px-5 py-2 text-base text-amber-soft transition-colors hover:border-amber-glow hover:bg-ink-600/80"
         >
           {paused ? 'Weiter' : 'Pause'}
         </button>
       </div>
 
-      <p className="text-center text-xs text-bone/40">
+      <p className="text-center text-sm text-bone/45">
         Spiel die Taste, deren Name die Linie erreicht. Je runder es läuft, desto
         schneller wird der Regen — bleibt es schwierig, wird er wieder ruhiger.
       </p>
