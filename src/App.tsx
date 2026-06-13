@@ -18,6 +18,8 @@ import BarIndicator from './components/BarIndicator'
 import MidiStatus from './components/MidiStatus'
 import Onboarding from './components/Onboarding'
 import LearningPath from './components/LearningPath'
+import NotenregenGame from './components/NotenregenGame'
+import type { ChallengeId } from './music/learningPath'
 
 type View = 'sandbox' | 'path'
 
@@ -34,6 +36,7 @@ export default function App() {
   const setCurrentBar = useSessionStore((s) => s.setCurrentBar)
 
   const [view, setView] = useState<View>('sandbox')
+  const [challenge, setChallenge] = useState<ChallengeId | null>(null)
 
   const midi = useMidi()
   const fallbackLabels = useKeyboardFallback()
@@ -107,7 +110,10 @@ export default function App() {
             <button
               key={id}
               type="button"
-              onClick={() => setView(id)}
+              onClick={() => {
+                setView(id)
+                setChallenge(null)
+              }}
               aria-pressed={view === id}
               className={`ease-soft rounded-full px-4 py-1.5 transition-all duration-150 ${
                 view === id
@@ -136,7 +142,11 @@ export default function App() {
         </main>
       ) : (
         <main className="flex w-full flex-1 flex-col">
-          <LearningPath />
+          {challenge === 'notenregen' ? (
+            <NotenregenGame onExit={() => setChallenge(null)} />
+          ) : (
+            <LearningPath onStartChallenge={setChallenge} />
+          )}
         </main>
       )}
 

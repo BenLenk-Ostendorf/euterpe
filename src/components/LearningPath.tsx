@@ -4,6 +4,7 @@ import {
   ALL_SKILLS,
   CATEGORIES,
   CATEGORY_COLOR,
+  type ChallengeId,
   type Skill,
 } from '../music/learningPath'
 
@@ -15,7 +16,11 @@ interface Edge {
 
 const FAINT = 'rgba(239,230,214,0.16)'
 
-export default function LearningPath() {
+export default function LearningPath({
+  onStartChallenge,
+}: {
+  onStartChallenge?: (id: ChallengeId) => void
+}) {
   const graphRef = useRef<HTMLDivElement | null>(null)
   const nodeRefs = useRef<Map<string, HTMLElement>>(new Map())
   const [edges, setEdges] = useState<Edge[]>([])
@@ -210,6 +215,15 @@ export default function LearningPath() {
             <p className="text-sm leading-relaxed text-bone/75">
               {selected.detail}
             </p>
+            {selected.challenge && onStartChallenge && (
+              <button
+                type="button"
+                onClick={() => onStartChallenge(selected.challenge!)}
+                className="ease-soft mt-1 w-fit rounded-full border border-amber-glow/50 bg-ink-700/70 px-4 py-1.5 text-sm text-amber-soft transition-all hover:border-amber-glow hover:bg-ink-600"
+              >
+                ▶ Challenge starten
+              </button>
+            )}
           </div>
         ) : (
           <p className="text-sm text-bone/40">

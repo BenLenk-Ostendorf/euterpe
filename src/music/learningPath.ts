@@ -4,6 +4,9 @@
 
 export type SkillCat = 'mec' | 'wis' | 'geh' | 'anw' | 'ziel'
 
+/** Spielbare Challenge zu einem Lernziel (sofern vorhanden). */
+export type ChallengeId = 'notenregen'
+
 export interface Skill {
   id: string
   cat: SkillCat
@@ -13,6 +16,8 @@ export interface Skill {
   detail: string
   /** IDs der direkt vorausgesetzten Fähigkeiten. */
   deps: string[]
+  /** Optionale spielbare Challenge, die zu diesem Lernziel hinführt. */
+  challenge?: ChallengeId
 }
 
 export interface CategoryMeta {
@@ -45,6 +50,7 @@ export const TIERS: Skill[][] = [
       detail:
         'Finde zu jedem Tonnamen blind die Taste. Die zwei und drei schwarzen Tasten sind deine Orientierungs-Anker.',
       deps: [],
+      challenge: 'notenregen',
     },
     {
       id: 'p1',
