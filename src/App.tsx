@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useSessionStore } from './state/sessionStore'
 import type { NoteName } from './music/theory'
 import { ensureAudioStarted, setPianoVolume } from './audio/pianoSampler'
@@ -17,6 +17,9 @@ import TransportControls from './components/TransportControls'
 import BarIndicator from './components/BarIndicator'
 import MidiStatus from './components/MidiStatus'
 import Onboarding from './components/Onboarding'
+import LearningPath from './components/LearningPath'
+
+type View = 'sandbox' | 'path'
 
 export default function App() {
   const hasStarted = useSessionStore((s) => s.hasStarted)
@@ -29,6 +32,8 @@ export default function App() {
   const backingVolume = useSessionStore((s) => s.backingVolume)
   const pianoVolume = useSessionStore((s) => s.pianoVolume)
   const setCurrentBar = useSessionStore((s) => s.setCurrentBar)
+
+  const [view, setView] = useState<View>('sandbox')
 
   const midi = useMidi()
   const fallbackLabels = useKeyboardFallback()
@@ -86,24 +91,54 @@ export default function App() {
   }
 
   return (
-    <div className="mx-auto flex min-h-full max-w-4xl flex-col items-center gap-8 px-4 py-8">
-      <header className="flex w-full items-center justify-between">
+    <div className="mx-auto flex min-h-full max-w-5xl flex-col items-center gap-8 px-4 py-8">
+      <header className="flex w-full items-center justify-between gap-4">
         <h1 className="font-display text-3xl tracking-wide text-amber-soft">
           Euterpe
         </h1>
-        <BarIndicator />
+
+        <nav className="flex items-center gap-1 rounded-full border border-bone/10 bg-ink-800/50 p-1 text-sm">
+          {(
+            [
+              ['sandbox', 'Spielen'],
+              ['path', 'Lernpfad'],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setView(id)}
+              aria-pressed={view === id}
+              className={`ease-soft rounded-full px-4 py-1.5 transition-all duration-150 ${
+                view === id
+                  ? 'bg-ink-600 text-amber-soft'
+                  : 'text-bone/55 hover:text-bone/90'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+
+        {view === 'sandbox' ? <BarIndicator /> : <div className="w-px" />}
       </header>
 
-      <main className="flex w-full flex-1 flex-col items-center justify-center gap-10">
-        <div className="w-full rounded-xl bg-ink-800/40 p-3 shadow-2xl ring-1 ring-black/40 sm:p-5">
-          <Keyboard fallbackLabels={fallbackLabels} />
-        </div>
+      {view === 'sandbox' ? (
+        <main className="flex w-full flex-1 flex-col items-center justify-center gap-10">
+          <div className="w-full max-w-4xl rounded-xl bg-ink-800/40 p-3 shadow-2xl ring-1 ring-black/40 sm:p-5">
+            <Keyboard fallbackLabels={fallbackLabels} />
+          </div>
 
-        <TransportControls
-          onTogglePlay={handleTogglePlay}
-          onKeyChange={handleKeyChange}
-        />
-      </main>
+          <TransportControls
+            onTogglePlay={handleTogglePlay}
+            onKeyChange={handleKeyChange}
+          />
+        </main>
+      ) : (
+        <main className="flex w-full flex-1 flex-col">
+          <LearningPath />
+        </main>
+      )}
 
       <footer className="w-full">
         <MidiStatus midi={midi} />
