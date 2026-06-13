@@ -18,8 +18,10 @@ const FAINT = 'rgba(239,230,214,0.16)'
 
 export default function LearningPath({
   onStartChallenge,
+  onStartFreeMode,
 }: {
   onStartChallenge?: (id: ChallengeId) => void
+  onStartFreeMode?: () => void
 }) {
   const graphRef = useRef<HTMLDivElement | null>(null)
   const nodeRefs = useRef<Map<string, HTMLElement>>(new Map())
@@ -84,6 +86,22 @@ export default function LearningPath({
 
   return (
     <div className="flex w-full flex-col gap-6">
+      {/* Kopf: Einstieg in den freien Spiel-Modus */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-bone/50">
+          Dein Weg vom Tastenfinden bis zum freien Begleiten.
+        </p>
+        {onStartFreeMode && (
+          <button
+            type="button"
+            onClick={onStartFreeMode}
+            className="ease-soft rounded-full border border-amber-glow/40 bg-ink-700/60 px-4 py-1.5 text-sm text-amber-soft transition-all hover:border-amber-glow hover:bg-ink-600"
+          >
+            ♪ Freier Modus
+          </button>
+        )}
+      </div>
+
       {/* Legende */}
       <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-bone/70">
         {CATEGORIES.map((c) => (

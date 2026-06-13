@@ -21,7 +21,9 @@ import LearningPath from './components/LearningPath'
 import NotenregenGame from './components/NotenregenGame'
 import type { ChallengeId } from './music/learningPath'
 
-type View = 'sandbox' | 'path'
+// Der Lernpfad (Tree) ist die Hauptseite. Von dort lassen sich Modi
+// "anschalten": der freie Spiel-Modus (Sandbox) oder eine Challenge.
+type Overlay = 'free' | ChallengeId | null
 
 export default function App() {
   const hasStarted = useSessionStore((s) => s.hasStarted)
@@ -35,8 +37,7 @@ export default function App() {
   const pianoVolume = useSessionStore((s) => s.pianoVolume)
   const setCurrentBar = useSessionStore((s) => s.setCurrentBar)
 
-  const [view, setView] = useState<View>('sandbox')
-  const [challenge, setChallenge] = useState<ChallengeId | null>(null)
+  const [overlay, setOverlay] = useState<Overlay>(null)
 
   const midi = useMidi()
   const fallbackLabels = useKeyboardFallback()
@@ -52,17 +53,32 @@ export default function App() {
     if (hasStarted) setPianoVolume(pianoVolume)
   }, [pianoVolume, hasStarted])
 
-  // Einstieg: Audio entsperren, Begleitung aufbauen, sofort losgrooven.
+  // Einstieg: nur Audio entsperren und auf der Hauptseite (Tree) landen.
+  // Keine Hintergrundmusik — die läuft erst, wenn man sie im freien Modus startet.
   const handleStart = async () => {
+    await ensureAudioStarted()
+    setPianoVolume(pianoVolume)
+    setHasStarted(true)
+  }
+
+  // Freien Modus anschalten: Begleitung bereitstellen, aber noch still lassen
+  // (erst Play im Modus startet den Groove).
+  const enterFreeMode = async () => {
     await ensureAudioStarted()
     configureTransport(tempo)
     setBackingVolume(backingVolume)
     setPianoVolume(pianoVolume)
     setupBacking(key)
     registerBarTicker(setCurrentBar)
-    setHasStarted(true)
-    startTransport()
-    setIsPlaying(true)
+    setOverlay('free')
+  }
+
+  // Zurück zum Tree: Musik anhalten, damit unter dem Baum nichts weiterläuft.
+  const exitToTree = () => {
+    stopTransport()
+    setIsPlaying(false)
+    setCurrentBar(0)
+    setOverlay(null)
   }
 
   const handleTogglePlay = async () => {
@@ -78,14 +94,12 @@ export default function App() {
 
   const handleKeyChange = (next: NoteName) => {
     setKey(next)
-    if (hasStarted) {
-      // Tonartwechsel darf den Loop neu starten (siehe Brief, M3).
-      setupBacking(next)
-      if (isPlaying) {
-        stopTransport()
-        setCurrentBar(0)
-        startTransport()
-      }
+    // Tonartwechsel baut die Begleitung neu auf (und startet ggf. neu).
+    setupBacking(next)
+    if (isPlaying) {
+      stopTransport()
+      setCurrentBar(0)
+      startTransport()
     }
   }
 
@@ -99,56 +113,38 @@ export default function App() {
         <h1 className="font-display text-3xl tracking-wide text-amber-soft">
           Euterpe
         </h1>
-
-        <nav className="flex items-center gap-1 rounded-full border border-bone/10 bg-ink-800/50 p-1 text-sm">
-          {(
-            [
-              ['sandbox', 'Spielen'],
-              ['path', 'Lernpfad'],
-            ] as const
-          ).map(([id, label]) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => {
-                setView(id)
-                setChallenge(null)
-              }}
-              aria-pressed={view === id}
-              className={`ease-soft rounded-full px-4 py-1.5 transition-all duration-150 ${
-                view === id
-                  ? 'bg-ink-600 text-amber-soft'
-                  : 'text-bone/55 hover:text-bone/90'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </nav>
-
-        {view === 'sandbox' ? <BarIndicator /> : <div className="w-px" />}
+        {overlay === 'free' ? <BarIndicator /> : <div className="w-px" />}
       </header>
 
-      {view === 'sandbox' ? (
-        <main className="flex w-full flex-1 flex-col items-center justify-center gap-10">
-          <div className="w-full max-w-4xl rounded-xl bg-ink-800/40 p-3 shadow-2xl ring-1 ring-black/40 sm:p-5">
-            <Keyboard fallbackLabels={fallbackLabels} />
+      <main className="flex w-full flex-1 flex-col">
+        {overlay === 'notenregen' ? (
+          <NotenregenGame onExit={() => setOverlay(null)} />
+        ) : overlay === 'free' ? (
+          <div className="flex w-full flex-1 flex-col items-center gap-8">
+            <button
+              type="button"
+              onClick={exitToTree}
+              className="ease-soft self-start rounded-full border border-bone/15 px-4 py-2 text-base text-bone/70 transition-colors hover:border-amber-glow/50 hover:text-amber-soft"
+            >
+              ← Lernpfad
+            </button>
+            <div className="flex w-full flex-1 flex-col items-center justify-center gap-10">
+              <div className="w-full max-w-4xl rounded-xl bg-ink-800/40 p-3 shadow-2xl ring-1 ring-black/40 sm:p-5">
+                <Keyboard fallbackLabels={fallbackLabels} />
+              </div>
+              <TransportControls
+                onTogglePlay={handleTogglePlay}
+                onKeyChange={handleKeyChange}
+              />
+            </div>
           </div>
-
-          <TransportControls
-            onTogglePlay={handleTogglePlay}
-            onKeyChange={handleKeyChange}
+        ) : (
+          <LearningPath
+            onStartChallenge={setOverlay}
+            onStartFreeMode={enterFreeMode}
           />
-        </main>
-      ) : (
-        <main className="flex w-full flex-1 flex-col">
-          {challenge === 'notenregen' ? (
-            <NotenregenGame onExit={() => setChallenge(null)} />
-          ) : (
-            <LearningPath onStartChallenge={setChallenge} />
-          )}
-        </main>
-      )}
+        )}
+      </main>
 
       <footer className="w-full">
         <MidiStatus midi={midi} />
