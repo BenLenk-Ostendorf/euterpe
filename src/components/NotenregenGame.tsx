@@ -276,6 +276,30 @@ export default function NotenregenGame({ onExit }: { onExit: () => void }) {
     if (!next) nextSpawnRef.current = performance.now() + 400
   }
 
+  // Frisch anfangen: allen Spielzustand zurücksetzen (auch die Stufen).
+  const handleRestart = () => {
+    tilesRef.current = []
+    flashesRef.current.clear()
+    resultsRef.current = []
+    seenHitsRef.current.clear()
+    levelRef.current = 0
+    lastPcRef.current = -1
+    idRef.current = 0
+    nextSpawnRef.current = performance.now() + 600
+    pausedRef.current = false
+    setPaused(false)
+    setRender({ tiles: [], flashes: {} })
+    setStats({
+      accuracy: 0,
+      samples: 0,
+      level: 0,
+      flow: [],
+      erreicht: false,
+      verinnerlicht: false,
+      gemeistert: false,
+    })
+  }
+
   const handleDown = (pc: number) => (e: React.PointerEvent) => {
     e.preventDefault()
     ;(e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId)
@@ -470,13 +494,22 @@ export default function NotenregenGame({ onExit }: { onExit: () => void }) {
             </span>
           ))}
         </div>
-        <button
-          type="button"
-          onClick={togglePause}
-          className="ease-soft rounded-full border border-amber-glow/40 bg-ink-700/60 px-5 py-2 text-base text-amber-soft transition-colors hover:border-amber-glow hover:bg-ink-600/80"
-        >
-          {paused ? 'Weiter' : 'Pause'}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleRestart}
+            className="ease-soft rounded-full border border-bone/15 px-5 py-2 text-base text-bone/70 transition-colors hover:border-amber-glow/50 hover:text-amber-soft"
+          >
+            ↻ Neu starten
+          </button>
+          <button
+            type="button"
+            onClick={togglePause}
+            className="ease-soft rounded-full border border-amber-glow/40 bg-ink-700/60 px-5 py-2 text-base text-amber-soft transition-colors hover:border-amber-glow hover:bg-ink-600/80"
+          >
+            {paused ? 'Weiter' : 'Pause'}
+          </button>
+        </div>
       </div>
 
       <p className="text-center text-sm text-bone/45">
