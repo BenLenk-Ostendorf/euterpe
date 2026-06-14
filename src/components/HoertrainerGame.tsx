@@ -7,16 +7,18 @@ import { NOTE_NAMES } from '../music/theory'
 // Hörtrainer — Challenge für das Lernziel g0 "Du kannst die Richtung einer
 // Melodie hören": geht der nächste Ton hoch, runter oder bleibt gleich?
 //
-// Drei Stufen als eine erreicht→verinnerlicht→gemeistert-Leiter:
-//   1. Erkennen  — zwei Töne klingen, du tippst ↑ / = / ↓        (erreicht)
-//   2. Spielen   — du spielst zwei Tasten in derselben Richtung  (verinnerlicht)
-//   3. Kontur    — eine ganze Phrase, du zeichnest ihre Form nach (gemeistert)
+// Zwei Stufen als verinnerlicht→gemeistert-Leiter:
+//   1. Spielen   — du spielst zwei Tasten in derselben Richtung  (verinnerlicht)
+//   2. Kontur    — eine ganze Phrase, du zeichnest ihre Form nach (gemeistert)
+//
+// Der Anfangston wird gezeigt (Name + Markierung auf der Taste), damit du dich
+// orientieren und direkt den zweiten Ton suchen kannst.
 //
 // Gemessen wird über die SCHWEREN Fälle: kleine Intervalle (Sekunde/Halbton),
 // das "gleich" und beide Richtungen — nicht die offensichtliche Oktave. Kein
 // Tempo, kein Punktestand; Feedback zeigt die richtige Richtung, bewertet nie.
 
-type Mode = 'erkennen' | 'spielen' | 'kontur'
+type Mode = 'spielen' | 'kontur'
 type Dir = 'up' | 'same' | 'down'
 
 const DIR_ARROW: Record<Dir, string> = { up: '↑', same: '=', down: '↓' }
@@ -67,9 +69,8 @@ const freshStat = (): ModeStat => ({
   passed: false,
 })
 
-const MODE_ORDER: Mode[] = ['erkennen', 'spielen', 'kontur']
+const MODE_ORDER: Mode[] = ['spielen', 'kontur']
 const MODE_LABEL: Record<Mode, string> = {
-  erkennen: 'Erkennen',
   spielen: 'Spielen',
   kontur: 'Kontur',
 }
@@ -132,11 +133,10 @@ export default function HoertrainerGame({ onExit }: { onExit: () => void }) {
   const activeNotes = useSessionStore((s) => s.activeNotes)
 
   const statsRef = useRef<Record<Mode, ModeStat>>({
-    erkennen: freshStat(),
     spielen: freshStat(),
     kontur: freshStat(),
   })
-  const modeRef = useRef<Mode>('erkennen')
+  const modeRef = useRef<Mode>('spielen')
   const roundRef = useRef<Round>({ notes: [60, 60], dirs: ['same'] })
   const awaitingRef = useRef(false) // wartet auf Antwort?
   const playingRef = useRef(false)
@@ -144,16 +144,17 @@ export default function HoertrainerGame({ onExit }: { onExit: () => void }) {
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([])
 
   const [snap, setSnap] = useState<Snapshot>({
-    mode: 'erkennen',
+    mode: 'spielen',
     acc: 0,
     samples: 0,
     level: 0,
-    passed: { erkennen: false, spielen: false, kontur: false },
+    passed: { spielen: false, kontur: false },
   })
   const [playing, setPlaying] = useState(false)
   const [feedback, setFeedback] = useState<{ kind: 'hit' | 'miss'; text: string } | null>(null)
   const [konturAnswers, setKonturAnswers] = useState<Dir[]>([])
   const [firstPressPc, setFirstPressPc] = useState<number | null>(null)
+  const [startPc, setStartPc] = useState<number | null>(null)
 
   const clearTimers = useCallback(() => {
     timersRef.current.forEach(clearTimeout)
@@ -170,7 +171,6 @@ export default function HoertrainerGame({ onExit }: { onExit: () => void }) {
       samples: n,
       level: st.level,
       passed: {
-        erkennen: statsRef.current.erkennen.passed,
         spielen: statsRef.current.spielen.passed,
         kontur: statsRef.current.kontur.passed,
       },
@@ -209,6 +209,7 @@ export default function HoertrainerGame({ onExit }: { onExit: () => void }) {
     awaitingRef.current = true
     firstPressRef.current = null
     setFirstPressPc(null)
+    setStartPc(((roundRef.current.notes[0] % 12) + 12) % 12)
     setKonturAnswers([])
     setFeedback(null)
     playRound()
@@ -254,7 +255,7 @@ export default function HoertrainerGame({ onExit }: { onExit: () => void }) {
     [refresh],
   )
 
-  // Antwort einer einzelnen Richtung (Erkennen-Stufe + Spielen-Stufe).
+  // Antwort einer einzelnen Richtung (Spielen-Stufe).
   const answerSingle = useCallback(
     (d: Dir) => {
       if (!awaitingRef.current || playingRef.current) return
@@ -324,11 +325,10 @@ export default function HoertrainerGame({ onExit }: { onExit: () => void }) {
   const handleRestart = () => {
     clearTimers()
     statsRef.current = {
-      erkennen: freshStat(),
       spielen: freshStat(),
       kontur: freshStat(),
     }
-    modeRef.current = 'erkennen'
+    modeRef.current = 'spielen'
     nextRound()
     refresh()
   }
@@ -380,6 +380,14 @@ export default function HoertrainerGame({ onExit }: { onExit: () => void }) {
           {playing ? '♪ klingt …' : '↻ Nochmal hören'}
         </button>
 
+        {/* Anfangston — damit du dich orientieren kannst */}
+        <div className="text-base text-bone/70" aria-live="polite">
+          Anfangston:{' '}
+          <span className="font-display text-xl text-amber-soft">
+            {startPc !== null ? NOTE_NAMES[startPc] : '—'}
+          </span>
+        </div>
+
         {/* Feedback */}
         <div className="h-6 text-base font-medium" aria-live="polite">
           {feedback && (
@@ -397,7 +405,7 @@ export default function HoertrainerGame({ onExit }: { onExit: () => void }) {
               {firstPressPc !== null && (
                 <span className="text-amber-soft">
                   {' '}
-                  — erster Ton: {NOTE_NAMES[firstPressPc]}, jetzt der zweite
+                  — deine erste Taste: {NOTE_NAMES[firstPressPc]}, jetzt die zweite
                 </span>
               )}
             </p>
@@ -409,11 +417,12 @@ export default function HoertrainerGame({ onExit }: { onExit: () => void }) {
             >
               {WHITE_PCS.map((pc, wi) => {
                 const active = activeNotes.has(KB_BASE + pc)
+                const isStart = startPc === pc
                 return (
                   <button
                     key={pc}
                     type="button"
-                    aria-label={NOTE_NAMES[pc]}
+                    aria-label={NOTE_NAMES[pc] + (isStart ? ' (Anfangston)' : '')}
                     onPointerDown={handleDown(pc)}
                     onPointerUp={handleUp(pc)}
                     onPointerLeave={handleUp(pc)}
@@ -431,17 +440,25 @@ export default function HoertrainerGame({ onExit }: { onExit: () => void }) {
                         : 'inset 0 -4px 8px rgba(0,0,0,0.18)',
                       transform: active ? 'translateY(1.5px)' : 'none',
                     }}
-                  />
+                  >
+                    {isStart && (
+                      <span
+                        className="pointer-events-none absolute bottom-2 left-1/2 h-2.5 w-2.5 -translate-x-1/2 rounded-full"
+                        style={{ background: GOLD, boxShadow: '0 0 8px rgba(224,177,94,0.85)' }}
+                      />
+                    )}
+                  </button>
                 )
               })}
               {BLACK_PCS.map((pc) => {
                 const left = whitesBefore(pc) * WHITE_W - (WHITE_W * 0.62) / 2
                 const active = activeNotes.has(KB_BASE + pc)
+                const isStart = startPc === pc
                 return (
                   <button
                     key={pc}
                     type="button"
-                    aria-label={NOTE_NAMES[pc]}
+                    aria-label={NOTE_NAMES[pc] + (isStart ? ' (Anfangston)' : '')}
                     onPointerDown={handleDown(pc)}
                     onPointerUp={handleUp(pc)}
                     onPointerLeave={handleUp(pc)}
@@ -461,42 +478,43 @@ export default function HoertrainerGame({ onExit }: { onExit: () => void }) {
                         : '0 3px 5px rgba(0,0,0,0.5)',
                       transform: active ? 'translateY(1.5px)' : 'none',
                     }}
-                  />
+                  >
+                    {isStart && (
+                      <span
+                        className="pointer-events-none absolute bottom-1.5 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full"
+                        style={{ background: GOLD, boxShadow: '0 0 8px rgba(224,177,94,0.95)' }}
+                      />
+                    )}
+                  </button>
                 )
               })}
             </div>
           </>
         ) : (
           <>
-            {mode === 'kontur' && (
-              <div className="flex items-center gap-2 text-2xl">
-                {Array.from({ length: konturLen }).map((_, i) => (
-                  <span
-                    key={i}
-                    className="flex h-9 w-9 items-center justify-center rounded-md border"
-                    style={{
-                      borderColor: konturAnswers[i] ? GOLD : 'rgba(239,230,214,0.18)',
-                      color: konturAnswers[i] ? '#f0d49a' : 'rgba(239,230,214,0.3)',
-                    }}
-                  >
-                    {konturAnswers[i] ? DIR_ARROW[konturAnswers[i]] : '·'}
-                  </span>
-                ))}
-              </div>
-            )}
+            <div className="flex items-center gap-2 text-2xl">
+              {Array.from({ length: konturLen }).map((_, i) => (
+                <span
+                  key={i}
+                  className="flex h-9 w-9 items-center justify-center rounded-md border"
+                  style={{
+                    borderColor: konturAnswers[i] ? GOLD : 'rgba(239,230,214,0.18)',
+                    color: konturAnswers[i] ? '#f0d49a' : 'rgba(239,230,214,0.3)',
+                  }}
+                >
+                  {konturAnswers[i] ? DIR_ARROW[konturAnswers[i]] : '·'}
+                </span>
+              ))}
+            </div>
             <p className="text-center text-sm text-bone/55">
-              {mode === 'erkennen'
-                ? 'Ging der zweite Ton hoch, blieb gleich oder ging runter?'
-                : `Zeichne die Form Schritt für Schritt nach (${konturAnswers.length}/${konturLen}).`}
+              {`Zeichne die Form Schritt für Schritt nach (${konturAnswers.length}/${konturLen}).`}
             </p>
             <div className="flex gap-3">
               {(['up', 'same', 'down'] as Dir[]).map((d) => (
                 <button
                   key={d}
                   type="button"
-                  onClick={() =>
-                    mode === 'kontur' ? answerKonturStep(d) : answerSingle(d)
-                  }
+                  onClick={() => answerKonturStep(d)}
                   disabled={playing}
                   className="ease-soft flex min-w-[96px] flex-col items-center gap-1 rounded-xl border border-bone/15 bg-ink-700/50 px-5 py-3 text-bone/80 transition-all hover:-translate-y-0.5 hover:border-amber-glow/50 hover:text-amber-soft disabled:opacity-40"
                 >
@@ -514,7 +532,6 @@ export default function HoertrainerGame({ onExit }: { onExit: () => void }) {
         <div className="flex flex-wrap gap-2 text-sm">
           {(
             [
-              ['erreicht', snap.passed.erkennen, 'Erkennen: Richtung sicher gehört, auch bei kleinen Schritten'],
               ['verinnerlicht', snap.passed.spielen, 'Spielen: Richtung sicher selbst nachgespielt'],
               ['gemeistert', gemeistert, 'Kontur: ganze Phrasen-Form sicher erkannt = Lernziel erfüllt'],
             ] as const

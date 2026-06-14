@@ -77,7 +77,7 @@ export const TIERS: Skill[][] = [
       cat: 'geh',
       label: 'Du kannst die Richtung einer Melodie hören.',
       detail:
-        'Geht der nächste Ton hoch, runter oder bleibt gleich? Die gröbste — und wichtigste — erste Gehör-Stufe. Erreicht, wenn du auch feine Schritte sicher hörst — erst erkennen, dann selbst nachspielen, dann ganze Konturen.',
+        'Geht der nächste Ton hoch, runter oder bleibt gleich? Die gröbste — und wichtigste — erste Gehör-Stufe. Erreicht, wenn du auch feine Schritte sicher hörst — erst selbst nachspielen, dann ganze Konturen.',
       deps: [],
       challenge: 'hoertrainer',
     },
