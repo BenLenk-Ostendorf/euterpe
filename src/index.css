@@ -6,10 +6,27 @@
   color-scheme: dark;
 }
 
+html {
+  /* Verhindert, dass iOS Schriftgrößen beim Drehen aufbläht. */
+  -webkit-text-size-adjust: 100%;
+}
+
 html,
 body,
 #root {
-  height: 100%;
+  min-height: 100%;
+}
+
+/* Touch-Feinschliff fürs Handy: kein Tap-Highlight, kein Doppeltipp-Zoom auf
+   Tasten/Buttons, kein versehentliches Pull-to-Refresh beim Spielen. */
+body {
+  overscroll-behavior-y: contain;
+}
+button {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
 }
 
 body {
