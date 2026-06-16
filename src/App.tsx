@@ -21,6 +21,7 @@ import LearningPath from './components/LearningPath'
 import NotenregenGame from './components/NotenregenGame'
 import TastenfinderGame from './components/TastenfinderGame'
 import HoertrainerGame from './components/HoertrainerGame'
+import AkkordgriffGame from './components/AkkordgriffGame'
 import type { ChallengeId } from './music/learningPath'
 
 // Der Lernpfad (Tree) ist die Hauptseite. Von dort lassen sich Modi
@@ -123,6 +124,8 @@ export default function App() {
           <TastenfinderGame onExit={() => setOverlay(null)} />
         ) : overlay === 'hoertrainer' ? (
           <HoertrainerGame onExit={() => setOverlay(null)} />
+        ) : overlay === 'akkordgriff' ? (
+          <AkkordgriffGame onExit={() => setOverlay(null)} />
         ) : overlay === 'notenregen' ? (
           <NotenregenGame onExit={() => setOverlay(null)} />
         ) : overlay === 'free' ? (

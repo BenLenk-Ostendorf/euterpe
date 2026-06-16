@@ -5,12 +5,13 @@
 export type SkillCat = 'mec' | 'wis' | 'geh' | 'anw' | 'ziel'
 
 /** Spielbare Challenge zu einem Lernziel (sofern vorhanden). */
-export type ChallengeId = 'tastenfinder' | 'hoertrainer' | 'notenregen'
+export type ChallengeId = 'tastenfinder' | 'hoertrainer' | 'akkordgriff' | 'notenregen'
 
 /** Anzeige-Name einer Challenge (für Listen/Buttons). */
 export const CHALLENGE_LABEL: Record<ChallengeId, string> = {
   tastenfinder: 'Tastenfinder',
   hoertrainer: 'Hörtrainer',
+  akkordgriff: 'Akkordgriff',
   notenregen: 'Notenregen',
 }
 
@@ -104,8 +105,9 @@ export const TIERS: Skill[][] = [
       cat: 'wis',
       label: 'Du kannst einen Dreiklang greifen.',
       detail:
-        'Drei Töne übereinander (1–3–5) als einen Griff. Das Grundbauteil jeder Begleitung.',
+        'Drei Töne übereinander (1–3–5) als einen Griff. Das Grundbauteil jeder Begleitung. Rezept: Grundton +4 +3 Halbtöne = Dur, +3 +4 = Moll.',
       deps: ['m1'],
+      challenge: 'akkordgriff',
     },
     {
       id: 'g1',
