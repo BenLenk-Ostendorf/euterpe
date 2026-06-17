@@ -2,7 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { onNoteOn, playNote, stopNote } from '../audio/notePlayer'
 import { attack, ensureAudioStarted, release } from '../audio/pianoSampler'
 import { useSessionStore } from '../state/sessionStore'
-import { NOTE_NAMES } from '../music/theory'
+import { useProgressStore } from '../state/progressStore'
+import { NOTE_NAMES, midiToScientific } from '../music/theory'
 
 // Hörtrainer — Challenge für das Lernziel g0 "Du kannst die Richtung einer
 // Melodie hören": geht der nächste Ton hoch, runter oder bleibt gleich?
@@ -42,15 +43,13 @@ const tierIndex = (level: number) =>
   Math.min(TIERS.length - 1, Math.floor(level * TIERS.length))
 
 const WHITE_PCS = [0, 2, 4, 5, 7, 9, 11]
-const BLACK_PCS = [1, 3, 6, 8, 10]
-const isWhitePc = (pc: number) => WHITE_PCS.includes(pc)
-const KB_BASE = 60 // C4 für die Spiel-Stufe
-function whitesBefore(pc: number) {
-  let n = 0
-  for (let p = 0; p < pc; p++) if (isWhitePc(p)) n++
-  return n
-}
-const WHITE_W = 100 / WHITE_PCS.length
+const isWhitePc = (pc: number) => WHITE_PCS.includes(((pc % 12) + 12) % 12)
+// Spiel-Stufe: zwei Oktaven, damit IMMER Platz nach oben UND unten ist
+// (vorher eine Oktave → Anfangston B oben ließ "hoch" nicht zu).
+const KB_LO = 48 // C3
+const KB_HI = 72 // C5
+// Anfangston mittig ankern, damit man in beide Richtungen ausweichen kann.
+const anchorMidi = (startPc: number) => (startPc <= 4 ? 60 + startPc : 48 + startPc)
 
 interface Round {
   notes: number[] // gespielte Tonfolge
@@ -154,7 +153,10 @@ export default function HoertrainerGame({ onExit }: { onExit: () => void }) {
   const [feedback, setFeedback] = useState<{ kind: 'hit' | 'miss'; text: string } | null>(null)
   const [konturAnswers, setKonturAnswers] = useState<Dir[]>([])
   const [firstPressPc, setFirstPressPc] = useState<number | null>(null)
-  const [startPc, setStartPc] = useState<number | null>(null)
+  const [startMidi, setStartMidi] = useState<number | null>(null)
+  const [lastPlayed, setLastPlayed] = useState<{ a: number; b: number } | null>(
+    null,
+  )
 
   const clearTimers = useCallback(() => {
     timersRef.current.forEach(clearTimeout)
@@ -209,7 +211,8 @@ export default function HoertrainerGame({ onExit }: { onExit: () => void }) {
     awaitingRef.current = true
     firstPressRef.current = null
     setFirstPressPc(null)
-    setStartPc(((roundRef.current.notes[0] % 12) + 12) % 12)
+    setStartMidi(anchorMidi(((roundRef.current.notes[0] % 12) + 12) % 12))
+    setLastPlayed(null)
     setKonturAnswers([])
     setFeedback(null)
     playRound()
@@ -306,9 +309,11 @@ export default function HoertrainerGame({ onExit }: { onExit: () => void }) {
         setFirstPressPc(((midi % 12) + 12) % 12)
         return
       }
-      const userDir = dirOf(firstPressRef.current, midi)
+      const first = firstPressRef.current
+      const userDir = dirOf(first, midi)
       firstPressRef.current = null
       setFirstPressPc(null)
+      setLastPlayed({ a: first, b: midi })
       answerSingle(userDir)
     })
     return () => unsub()
@@ -322,6 +327,13 @@ export default function HoertrainerGame({ onExit }: { onExit: () => void }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Fortschritt fürs Lernziel g0 festhalten (lokal, nur höchste Stufe).
+  const recordLevel = useProgressStore((s) => s.recordLevel)
+  useEffect(() => {
+    if (snap.passed.spielen) recordLevel('g0', 'verinnerlicht')
+    if (snap.passed.kontur) recordLevel('g0', 'gemeistert')
+  }, [snap, recordLevel])
+
   const handleRestart = () => {
     clearTimers()
     statsRef.current = {
@@ -333,12 +345,22 @@ export default function HoertrainerGame({ onExit }: { onExit: () => void }) {
     refresh()
   }
 
-  const handleDown = (pc: number) => (e: React.PointerEvent) => {
+  const handleDown = (m: number) => (e: React.PointerEvent) => {
     e.preventDefault()
     ;(e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId)
-    playNote(KB_BASE + pc)
+    playNote(m)
   }
-  const handleUp = (pc: number) => () => stopNote(KB_BASE + pc)
+  const handleUp = (m: number) => () => stopNote(m)
+
+  // Tastatur über zwei Oktaven (C3–C5), nach MIDI-Note.
+  const whiteMidis: number[] = []
+  const blackMidis: number[] = []
+  for (let m = KB_LO; m <= KB_HI; m++) {
+    if (isWhitePc(m)) whiteMidis.push(m)
+    else blackMidis.push(m)
+  }
+  const WHITE_W = 100 / whiteMidis.length
+  const whitesBelow = (m: number) => whiteMidis.filter((w) => w < m).length
 
   const mode = snap.mode
   const gemeistert = snap.passed.kontur
@@ -384,17 +406,27 @@ export default function HoertrainerGame({ onExit }: { onExit: () => void }) {
         <div className="text-base text-bone/70" aria-live="polite">
           Anfangston:{' '}
           <span className="font-display text-xl text-amber-soft">
-            {startPc !== null ? NOTE_NAMES[startPc] : '—'}
+            {startMidi !== null ? NOTE_NAMES[startMidi % 12] : '—'}
           </span>
         </div>
 
-        {/* Feedback */}
-        <div className="h-6 text-base font-medium" aria-live="polite">
-          {feedback && (
-            <span style={{ color: feedback.kind === 'hit' ? HIT : MISS }}>
-              {feedback.kind === 'hit' ? '✓ ' : '✗ '}
-              {feedback.text}
-            </span>
+        {/* Feedback + welcher Ton wirklich gespielt wurde */}
+        <div className="flex h-12 flex-col items-center justify-center gap-0.5">
+          <div className="text-base font-medium" aria-live="polite">
+            {feedback && (
+              <span style={{ color: feedback.kind === 'hit' ? HIT : MISS }}>
+                {feedback.kind === 'hit' ? '✓ ' : '✗ '}
+                {feedback.text}
+              </span>
+            )}
+          </div>
+          {mode === 'spielen' && lastPlayed && (
+            <div className="text-sm text-bone/55" aria-live="polite">
+              Gespielt: {midiToScientific(lastPlayed.a)}{' '}
+              {DIR_ARROW[dirOf(lastPlayed.a, lastPlayed.b)]}{' '}
+              {midiToScientific(lastPlayed.b)} (
+              {DIR_LABEL[dirOf(lastPlayed.a, lastPlayed.b)]})
+            </div>
           )}
         </div>
 
@@ -415,18 +447,20 @@ export default function HoertrainerGame({ onExit }: { onExit: () => void }) {
               role="group"
               aria-label="Klaviatur"
             >
-              {WHITE_PCS.map((pc, wi) => {
-                const active = activeNotes.has(KB_BASE + pc)
-                const isStart = startPc === pc
+              {whiteMidis.map((m, wi) => {
+                const active = activeNotes.has(m)
+                const isStart = startMidi === m
                 return (
                   <button
-                    key={pc}
+                    key={m}
                     type="button"
-                    aria-label={NOTE_NAMES[pc] + (isStart ? ' (Anfangston)' : '')}
-                    onPointerDown={handleDown(pc)}
-                    onPointerUp={handleUp(pc)}
-                    onPointerLeave={handleUp(pc)}
-                    onPointerCancel={handleUp(pc)}
+                    aria-label={
+                      midiToScientific(m) + (isStart ? ' (Anfangston)' : '')
+                    }
+                    onPointerDown={handleDown(m)}
+                    onPointerUp={handleUp(m)}
+                    onPointerLeave={handleUp(m)}
+                    onPointerCancel={handleUp(m)}
                     className="ease-soft absolute bottom-0 top-0 rounded-b-md border border-black/40 transition-[transform] duration-100"
                     style={{
                       left: `${wi * WHITE_W}%`,
@@ -450,19 +484,21 @@ export default function HoertrainerGame({ onExit }: { onExit: () => void }) {
                   </button>
                 )
               })}
-              {BLACK_PCS.map((pc) => {
-                const left = whitesBefore(pc) * WHITE_W - (WHITE_W * 0.62) / 2
-                const active = activeNotes.has(KB_BASE + pc)
-                const isStart = startPc === pc
+              {blackMidis.map((m) => {
+                const left = whitesBelow(m) * WHITE_W - (WHITE_W * 0.62) / 2
+                const active = activeNotes.has(m)
+                const isStart = startMidi === m
                 return (
                   <button
-                    key={pc}
+                    key={m}
                     type="button"
-                    aria-label={NOTE_NAMES[pc] + (isStart ? ' (Anfangston)' : '')}
-                    onPointerDown={handleDown(pc)}
-                    onPointerUp={handleUp(pc)}
-                    onPointerLeave={handleUp(pc)}
-                    onPointerCancel={handleUp(pc)}
+                    aria-label={
+                      midiToScientific(m) + (isStart ? ' (Anfangston)' : '')
+                    }
+                    onPointerDown={handleDown(m)}
+                    onPointerUp={handleUp(m)}
+                    onPointerLeave={handleUp(m)}
+                    onPointerCancel={handleUp(m)}
                     className="ease-soft absolute top-0 rounded-b-md transition-[transform] duration-100"
                     style={{
                       left: `${left}%`,
