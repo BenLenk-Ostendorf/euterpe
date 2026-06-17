@@ -6,9 +6,11 @@ import {
   CATEGORY_COLOR,
   CHALLENGE_LABEL,
   STANDALONE_CHALLENGES,
+  shortLabel,
   type ChallengeId,
   type Skill,
 } from '../music/learningPath'
+import { useProgressStore, type SkillLevel } from '../state/progressStore'
 
 interface Edge {
   from: string
@@ -17,6 +19,41 @@ interface Edge {
 }
 
 const FAINT = 'rgba(239,230,214,0.16)'
+
+// Fortschritts-Status eines Lernziels fürs Colorcoding.
+type Status = 'none' | 'available' | SkillLevel
+
+interface StatusStyle {
+  ring: string
+  bg: string
+  dim: boolean
+}
+const STATUS_STYLE: Record<Status, StatusStyle> = {
+  none: { ring: 'rgba(239,230,214,0.10)', bg: 'rgba(36,29,24,0.35)', dim: true },
+  available: {
+    ring: 'rgba(239,230,214,0.18)',
+    bg: 'rgba(36,29,24,0.55)',
+    dim: false,
+  },
+  erreicht: {
+    ring: 'rgba(155,184,138,0.45)',
+    bg: 'rgba(155,184,138,0.08)',
+    dim: false,
+  },
+  verinnerlicht: {
+    ring: 'rgba(155,184,138,0.8)',
+    bg: 'rgba(155,184,138,0.16)',
+    dim: false,
+  },
+  gemeistert: { ring: '#9bb88a', bg: 'rgba(155,184,138,0.26)', dim: false },
+}
+const STATUS_LEGEND: { status: Status; label: string }[] = [
+  { status: 'none', label: 'keine Übung' },
+  { status: 'available', label: 'Übung offen' },
+  { status: 'erreicht', label: 'erreicht' },
+  { status: 'verinnerlicht', label: 'verinnerlicht' },
+  { status: 'gemeistert', label: 'gemeistert' },
+]
 
 export default function LearningPath({
   onStartChallenge,
@@ -31,6 +68,11 @@ export default function LearningPath({
   const [size, setSize] = useState({ w: 0, h: 0 })
   const [hovered, setHovered] = useState<string | null>(null)
   const [selected, setSelected] = useState<Skill | null>(null)
+
+  const progress = useProgressStore((s) => s.progress)
+  const resetProgress = useProgressStore((s) => s.reset)
+  const statusOf = (skill: Skill): Status =>
+    progress[skill.id] ?? (skill.challenge ? 'available' : 'none')
 
   const setNodeRef = useCallback(
     (id: string) => (el: HTMLElement | null) => {
@@ -116,9 +158,34 @@ export default function LearningPath({
           </span>
         ))}
       </div>
+      {/* Status-Legende (Farbe der Umrandung) + Fortschritt zurücksetzen */}
+      <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-bone/60">
+        <span className="text-bone/40">Stand:</span>
+        {STATUS_LEGEND.map(({ status, label }) => (
+          <span key={status} className="inline-flex items-center gap-1.5">
+            <span
+              className="inline-block h-2.5 w-2.5 rounded-sm"
+              style={{
+                background: STATUS_STYLE[status].ring,
+                opacity: STATUS_STYLE[status].dim ? 0.5 : 1,
+              }}
+            />
+            {label}
+          </span>
+        ))}
+        {Object.keys(progress).length > 0 && (
+          <button
+            type="button"
+            onClick={resetProgress}
+            className="ease-soft rounded-full border border-bone/15 px-2.5 py-0.5 text-bone/45 transition-colors hover:border-amber-glow/50 hover:text-amber-soft"
+          >
+            zurücksetzen
+          </button>
+        )}
+      </div>
       <p className="text-center text-xs text-bone/40">
         Pfeil = „setzt voraus". Zeig auf ein Ziel, um seine Verbindungen zu
-        sehen — tipp es an für die Details.
+        sehen — tipp es an für die Details. Der farbige Rahmen zeigt deinen Stand.
       </p>
 
       {/* Graph */}
@@ -171,6 +238,13 @@ export default function LearningPath({
                 const isSel = selected?.id === skill.id
                 const color = CATEGORY_COLOR[skill.cat]
                 const playable = skill.challenge && onStartChallenge
+                const status = statusOf(skill)
+                const ss = STATUS_STYLE[status]
+                const ring = isSel
+                  ? color
+                  : isGoal
+                    ? 'rgba(239,230,214,0.12)'
+                    : ss.ring
                 return (
                   <button
                     key={skill.id}
@@ -194,21 +268,18 @@ export default function LearningPath({
                       isGoal ? 'justify-center text-center font-display' : ''
                     }`}
                     style={{
-                      borderTopColor: isSel ? color : 'rgba(239,230,214,0.12)',
-                      borderRightColor: isSel
-                        ? color
-                        : 'rgba(239,230,214,0.12)',
-                      borderBottomColor: isSel
-                        ? color
-                        : 'rgba(239,230,214,0.12)',
+                      borderTopColor: ring,
+                      borderRightColor: ring,
+                      borderBottomColor: ring,
                       borderLeftWidth: isGoal ? 1 : 4,
                       borderLeftColor: color,
                       background: isGoal
                         ? 'rgba(240,212,154,0.10)'
                         : isSel
                           ? 'rgba(47,38,31,0.9)'
-                          : 'rgba(36,29,24,0.55)',
+                          : ss.bg,
                       boxShadow: isSel ? `0 0 18px ${color}40` : 'none',
+                      opacity: ss.dim && !isGoal && !isSel ? 0.6 : 1,
                       maxWidth: isGoal ? 360 : undefined,
                       flexBasis: isGoal ? 'auto' : undefined,
                       fontSize: isGoal ? 15 : undefined,
@@ -223,7 +294,17 @@ export default function LearningPath({
                         ▶
                       </span>
                     )}
-                    {skill.label}
+                    <span className="flex-1">{shortLabel(skill.label)}</span>
+                    {status === 'gemeistert' && (
+                      <span
+                        aria-hidden
+                        className="ml-1.5"
+                        style={{ color: '#9bb88a' }}
+                        title="gemeistert"
+                      >
+                        ✓
+                      </span>
+                    )}
                   </button>
                 )
               })}
@@ -249,7 +330,7 @@ export default function LearningPath({
               </span>
             </div>
             <h3 className="font-display text-xl text-amber-soft">
-              {selected.label}
+              {shortLabel(selected.label)}
             </h3>
             <p className="text-sm leading-relaxed text-bone/75">
               {selected.detail}
@@ -290,7 +371,7 @@ export default function LearningPath({
                 <span className="font-medium">
                   {CHALLENGE_LABEL[s.challenge!]}
                 </span>
-                <span className="text-bone/45">— {s.label}</span>
+                <span className="text-bone/45">— {shortLabel(s.label)}</span>
               </button>
             ))}
             {STANDALONE_CHALLENGES.map((id) => (

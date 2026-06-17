@@ -235,3 +235,15 @@ export const TIERS: Skill[][] = [
 ]
 
 export const ALL_SKILLS: Skill[] = TIERS.flat()
+
+// Kurzform fürs Anzeigen im Graph: "Du kannst …" weg, erster Buchstabe groß,
+// Schlusspunkt weg. "Du kannst jede Taste benennen." -> "Jede Taste benennen".
+export function shortLabel(label: string): string {
+  const s = label.replace(/^Du kannst\s+/i, '').replace(/\.\s*$/, '')
+  return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
+/** Lernziel-ID, zu der eine Challenge gehört (für Fortschritts-Zuordnung). */
+export function skillIdForChallenge(id: ChallengeId): string | undefined {
+  return ALL_SKILLS.find((s) => s.challenge === id)?.id
+}

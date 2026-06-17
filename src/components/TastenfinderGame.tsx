@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { onNoteOn, playNote, stopNote } from '../audio/notePlayer'
 import { useSessionStore } from '../state/sessionStore'
+import { useProgressStore } from '../state/progressStore'
 import { NOTE_NAMES } from '../music/theory'
 
 // Tastenfinder — Drill für das Lernziel m1 "Du kannst jede Taste benennen".
@@ -190,6 +191,16 @@ export default function TastenfinderGame({ onExit }: { onExit: () => void }) {
     pickTarget()
     refreshSnap()
   }, [pickTarget, refreshSnap])
+
+  // Fortschritt fürs Lernziel m1 festhalten (lokal, nur höchste Stufe).
+  const recordLevel = useProgressStore((s) => s.recordLevel)
+  useEffect(() => {
+    if (snap.L.erreicht || snap.R.erreicht) recordLevel('m1', 'erreicht')
+    if (snap.L.verinnerlicht || snap.R.verinnerlicht)
+      recordLevel('m1', 'verinnerlicht')
+    if (snap.L.verinnerlicht && snap.R.verinnerlicht)
+      recordLevel('m1', 'gemeistert')
+  }, [snap, recordLevel])
 
   const switchHand = (next: Hand) => {
     handRef.current = next

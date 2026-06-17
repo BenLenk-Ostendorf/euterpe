@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { onNoteOn, playNote, stopNote } from '../audio/notePlayer'
 import { attack, ensureAudioStarted, release } from '../audio/pianoSampler'
 import { useSessionStore } from '../state/sessionStore'
+import { useProgressStore } from '../state/progressStore'
 import { midiToName } from '../music/theory'
 
 // Akkordgriff — Challenge für das Lernziel w2 "Du kannst einen Dreiklang greifen".
@@ -346,6 +347,14 @@ export default function AkkordgriffGame({ onExit }: { onExit: () => void }) {
     return () => clearTimers()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Fortschritt fürs Lernziel w2 festhalten (lokal, nur höchste Stufe).
+  const recordLevel = useProgressStore((s) => s.recordLevel)
+  useEffect(() => {
+    if (snap.erreicht) recordLevel('w2', 'erreicht')
+    if (snap.verinnerlicht) recordLevel('w2', 'verinnerlicht')
+    if (snap.gemeistert) recordLevel('w2', 'gemeistert')
+  }, [snap, recordLevel])
 
   const handleRestart = () => {
     clearTimers()
