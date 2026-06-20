@@ -23,6 +23,7 @@ import TastenfinderGame from './components/TastenfinderGame'
 import HoertrainerGame from './components/HoertrainerGame'
 import DurMollGame from './components/DurMollGame'
 import IntervallGame from './components/IntervallGame'
+import WechselGame from './components/WechselGame'
 import AkkordgriffGame from './components/AkkordgriffGame'
 import type { ChallengeId } from './music/learningPath'
 
@@ -130,6 +131,8 @@ export default function App() {
           <DurMollGame onExit={() => setOverlay(null)} />
         ) : overlay === 'intervalle' ? (
           <IntervallGame onExit={() => setOverlay(null)} />
+        ) : overlay === 'wechsel' ? (
+          <WechselGame onExit={() => setOverlay(null)} />
         ) : overlay === 'akkordgriff' ? (
           <AkkordgriffGame onExit={() => setOverlay(null)} />
         ) : overlay === 'notenregen' ? (

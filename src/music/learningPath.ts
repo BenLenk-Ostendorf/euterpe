@@ -11,6 +11,7 @@ export type ChallengeId =
   | 'hoertrainer'
   | 'durmoll'
   | 'intervalle'
+  | 'wechsel'
   | 'akkordgriff'
   | 'notenregen'
 
@@ -19,6 +20,7 @@ export const CHALLENGE_LABEL: Record<ChallengeId, string> = {
   hoertrainer: 'Hörtrainer',
   durmoll: 'Dur/Moll-Ohr',
   intervalle: 'Intervall-Ohr',
+  wechsel: 'Wechsel-Ohr',
   akkordgriff: 'Akkordgriff',
   notenregen: 'Notenregen',
 }
@@ -117,12 +119,22 @@ export const NODES: PathNode[] = [
     progressId: 'gi',
   },
   {
+    id: 'gw',
+    strand: 'gehoer',
+    label: 'Akkordwechsel hören',
+    tag: 'Wechsel-Ohr',
+    detail:
+      'Wann wechselt die Harmonie? Eine Akkordfolge im Puls — zähl die Wechsel. Das Gespür dafür, WANN ein neuer Akkord fällig ist, gibt der Begleitung ihren Rhythmus. Stufen: 3 → 4 → 5 Akkorde.',
+    challenge: 'wechsel',
+    progressId: 'gw',
+  },
+  {
     id: 'gs',
     strand: 'gehoer',
     label: 'Grundton · Stufen',
-    tag: 'Wechsel hören',
+    tag: 'Stufen denken',
     detail:
-      'Auf welchem Ton ruht das Lied (Grundton)? Welche Stufe ist ein Ton? Und wann wechselt die Harmonie? Die feine, mächtige Gehör-Ebene.',
+      'Auf welchem Ton ruht das Lied (Grundton)? Welche Stufe ist ein Ton? Die feine, mächtige Gehör-Ebene, die Gehör und Wissen verschmilzt.',
   },
 
   // ── Improvisation ──────────────────────────────────────────────────────
