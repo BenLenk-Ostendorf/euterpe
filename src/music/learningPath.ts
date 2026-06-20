@@ -1,13 +1,13 @@
-// Der Lernzielgraph: vom ersten Tastenfinden bis zum freien Begleiten.
-// Jeder Knoten ist EIN klares "Du kannst …", die Kanten sind Voraussetzungen.
-// Bewusst ohne Fortschritts-/Scoring-Logik — reine Orientierung, kein Spiel.
+// Die Lern-Landkarte: KEIN einzelner Aufstieg, sondern mehrere parallele
+// Stränge, die jeder für sich schon Musik machen — und oben im Nordstern
+// zusammenlaufen. Jeder Strang trägt eigene kleine Spaß-Ziele.
+//
+// Grundlage: SKILL_DECOMPOSITION.md (Repo-Root). Bewusst ohne Scoring/Punkte —
+// reine Orientierung. Fortschritts-Farbe kommt aus progressStore (lokal).
 
-export type SkillCat = 'mec' | 'wis' | 'geh' | 'anw' | 'ziel'
-
-/** Spielbare Challenge zu einem Lernziel (sofern vorhanden). */
+/** Spielbare Challenge (sofern vorhanden). */
 export type ChallengeId = 'tastenfinder' | 'hoertrainer' | 'akkordgriff' | 'notenregen'
 
-/** Anzeige-Name einer Challenge (für Listen/Buttons). */
 export const CHALLENGE_LABEL: Record<ChallengeId, string> = {
   tastenfinder: 'Tastenfinder',
   hoertrainer: 'Hörtrainer',
@@ -15,235 +15,227 @@ export const CHALLENGE_LABEL: Record<ChallengeId, string> = {
   notenregen: 'Notenregen',
 }
 
-// Spielbare Artefakte, die (noch) keinem Lernziel zugeordnet sind. Der
-// Notenregen ist als Spiel erhalten, aber bewusst nicht an p1 „Puls" gehängt
-// — dafür gibt es vermutlich ein besseres Spielkonzept (noch offen).
+// Spielbare Artefakte, die (noch) keinem Strang zugeordnet sind.
 export const STANDALONE_CHALLENGES: ChallengeId[] = ['notenregen']
 
-export interface Skill {
-  id: string
-  cat: SkillCat
-  /** Das Lernziel, immer als "Du kannst …". */
-  label: string
-  /** Kurze Erklärung + worauf es ankommt. */
-  detail: string
-  /** IDs der direkt vorausgesetzten Fähigkeiten. */
-  deps: string[]
-  /** Optionale spielbare Challenge, die zu diesem Lernziel hinführt. */
-  challenge?: ChallengeId
-}
+export type StrandId = 'gehoer' | 'improv' | 'akkorde' | 'koord'
 
-export interface CategoryMeta {
-  cat: SkillCat
+export interface Strand {
+  id: StrandId
   name: string
-  /** Hex-Farbe, abgestimmt auf die Dark-Academia-/Jazz-Palette. */
+  /** Kurzes Schlagwort unter dem Namen. */
+  sub: string
   color: string
+  /** Koordination läuft als Dauerband „nebenher", nicht als Tor. */
+  nebenher?: boolean
 }
 
-export const CATEGORIES: CategoryMeta[] = [
-  { cat: 'mec', name: 'Mechanik', color: '#e0b15e' },
-  { cat: 'wis', name: 'Wissen', color: '#7fa8c9' },
-  { cat: 'geh', name: 'Gehör', color: '#9bb88a' },
-  { cat: 'anw', name: 'Anwendung', color: '#cf9277' },
-  { cat: 'ziel', name: 'Ziel', color: '#f0d49a' },
+export const STRANDS: Strand[] = [
+  { id: 'gehoer', name: 'Gehör', sub: 'das Ohr', color: '#9bb88a' },
+  { id: 'improv', name: 'Improvisation', sub: 'die Sandbox', color: '#e0b15e' },
+  { id: 'akkorde', name: 'Akkorde & Begleitung', sub: 'die Hände', color: '#7fa8c9' },
+  {
+    id: 'koord',
+    name: 'Koordination',
+    sub: 'läuft nebenher',
+    color: '#cf9277',
+    nebenher: true,
+  },
 ]
 
-export const CATEGORY_COLOR: Record<SkillCat, string> = CATEGORIES.reduce(
-  (acc, c) => ({ ...acc, [c.cat]: c.color }),
-  {} as Record<SkillCat, string>,
+export const STRAND_COLOR: Record<StrandId, string> = STRANDS.reduce(
+  (acc, s) => ({ ...acc, [s.id]: s.color }),
+  {} as Record<StrandId, string>,
 )
 
-// Die Knoten in Ebenen (von Grundlagen unten-frei bis zum Ziel).
-export const TIERS: Skill[][] = [
-  [
-    {
-      id: 'm1',
-      cat: 'mec',
-      label: 'Du kannst jede Taste benennen.',
-      detail:
-        'Finde zu jedem Tonnamen blind die Taste. Die zwei und drei schwarzen Tasten sind deine Orientierungs-Anker. Geschafft ist es, wenn du alle Tasten ruhig und ohne Beschriftung findest — mit beiden Händen.',
-      deps: [],
-      challenge: 'tastenfinder',
-    },
-    {
-      id: 'p1',
-      cat: 'mec',
-      label: 'Du kannst im gleichmäßigen Puls spielen.',
-      detail:
-        'Ein Ton pro Puls, ohne zu eilen oder zu schleppen. Der Puls ist wichtiger als die Melodie.',
-      deps: [],
-    },
-    {
-      id: 'g0',
-      cat: 'geh',
-      label: 'Du kannst die Richtung einer Melodie hören.',
-      detail:
-        'Geht der nächste Ton hoch, runter oder bleibt gleich? Die gröbste — und wichtigste — erste Gehör-Stufe. Erreicht, wenn du auch feine Schritte sicher hörst — erst selbst nachspielen, dann ganze Konturen.',
-      deps: [],
-      challenge: 'hoertrainer',
-    },
-  ],
-  [
-    {
-      id: 'm2',
-      cat: 'mec',
-      label: 'Du kannst die Tastatur blind ertasten.',
-      detail:
-        'Tasten treffen, ohne hinzusehen. Erst dann kannst du beim Spielen hören statt schauen.',
-      deps: ['m1'],
-    },
-    {
-      id: 'w1',
-      cat: 'wis',
-      label: 'Du kannst eine Dur-Tonleiter spielen.',
-      detail:
-        'Die sieben Stufen einer Tonart in Reihe, mit sauberem Fingersatz und Daumenuntersatz.',
-      deps: ['m1'],
-    },
-    {
-      id: 'w2',
-      cat: 'wis',
-      label: 'Du kannst einen Dreiklang greifen.',
-      detail:
-        'Drei Töne übereinander (1–3–5) als einen Griff. Das Grundbauteil jeder Begleitung. Rezept: Grundton +4 +3 Halbtöne = Dur, +3 +4 = Moll.',
-      deps: ['m1'],
-      challenge: 'akkordgriff',
-    },
-    {
-      id: 'g1',
-      cat: 'geh',
-      label: 'Du kannst Intervalle hören.',
-      detail:
-        'Erkenne den Abstand zweier Töne am Klang (Terz, Quinte …). Mit bekannten Liedanfängen verankern.',
-      deps: ['g0'],
-    },
-  ],
-  [
-    {
-      id: 'w3',
-      cat: 'wis',
-      label: 'Du kannst die Tonleiterstufen benennen.',
-      detail:
-        'Welcher Ton ist die 1., 4., 5. Stufe? In Stufen statt in absoluten Tönen denken macht alles übertragbar.',
-      deps: ['w1'],
-    },
-    {
-      id: 'w4',
-      cat: 'wis',
-      label: 'Du kannst die drei Hauptakkorde greifen.',
-      detail:
-        'Tonika, Subdominante, Dominante (I, IV, V). Damit lassen sich erstaunlich viele Lieder begleiten.',
-      deps: ['w2'],
-    },
-    {
-      id: 'm3',
-      cat: 'mec',
-      label: 'Du kannst beide Hände unabhängig bewegen.',
-      detail:
-        'Links etwas anderes als rechts. Der mechanische Kernknoten fürs Begleiten.',
-      deps: ['m2', 'p1'],
-    },
-    {
-      id: 'g2',
-      cat: 'geh',
-      label: 'Du kannst den Grundton heraushören.',
-      detail:
-        'Auf welchem Ton „ruht" das Lied? Der Grundton ist dein Ankerpunkt für alles Weitere.',
-      deps: ['g1'],
-    },
-  ],
-  [
-    {
-      id: 'g3',
-      cat: 'geh',
-      label: 'Du kannst einen Melodieton einer Stufe zuordnen.',
-      detail:
-        'Nicht nur „höher", sondern „das ist die 5. Stufe". Hier verschmelzen Gehör und Wissen.',
-      deps: ['g2', 'w3'],
-    },
-    {
-      id: 'a1',
-      cat: 'anw',
-      label: 'Du kannst die Tonart eines Stücks bestimmen.',
-      detail:
-        'Aus Grundton + Dur-/Moll-Klang die Tonart ableiten. Damit weißt du, welche Töne „passen".',
-      deps: ['g2', 'w1'],
-    },
-    {
-      id: 'w5',
-      cat: 'wis',
-      label: 'Du kannst eine Kadenz spielen.',
-      detail:
-        'Die typische Folge I–IV–V–I flüssig durchspielen — das harmonische Skelett unzähliger Songs.',
-      deps: ['w4'],
-    },
-    {
-      id: 'g4',
-      cat: 'geh',
-      label: 'Du kannst Akkordwechsel hören.',
-      detail:
-        'Spüren, WANN sich die Harmonie ändert — auch ohne zu wissen wohin. Das gibt der Begleitung ihren Rhythmus.',
-      deps: ['g2'],
-    },
-  ],
-  [
-    {
-      id: 'a2',
-      cat: 'anw',
-      label: 'Du kannst eine gehörte Melodie nachspielen.',
-      detail:
-        'Such-und-treffen: Ton für Ton die Melodie auf der Tastatur finden. Das eigentliche „Raushören".',
-      deps: ['g3', 'a1', 'm2'],
-    },
-    {
-      id: 'a3',
-      cat: 'anw',
-      label: 'Du kannst zu einer Melodie Akkorde finden.',
-      detail:
-        'Welcher Hauptakkord trägt die gerade gehörte Melodiestelle? Melodie und Harmonie verbinden.',
-      deps: ['g4', 'w5', 'a1'],
-    },
-    {
-      id: 'a4',
-      cat: 'anw',
-      label: 'Du kannst ein Begleitmuster spielen.',
-      detail:
-        'Akkorde nicht nur halten, sondern rhythmisieren: brechen, pumpen, Bass + Akkord.',
-      deps: ['w4', 'm3'],
-    },
-  ],
-  [
-    {
-      id: 'a5',
-      cat: 'anw',
-      label: 'Du kannst die Melodie über der Begleitung spielen.',
-      detail:
-        'Rechts die Melodie, links die Begleitung — gleichzeitig. Hier zahlt sich die Hand-Unabhängigkeit aus.',
-      deps: ['a2', 'a3', 'a4'],
-    },
-  ],
-  [
-    {
-      id: 'z',
-      cat: 'ziel',
-      label: 'Du kannst ein gehörtes Lied selbst begleiten.',
-      detail:
-        'Dein Ziel: etwas hören und es frei am Klavier umsetzen. Alle Stränge laufen hier zusammen.',
-      deps: ['a5'],
-    },
-  ],
+/** Ein Checkpoint auf einem Strang. */
+export interface PathNode {
+  id: string
+  strand: StrandId
+  label: string
+  /** Kleine Beschriftung (z. B. „über Liedanfänge"). */
+  tag?: string
+  detail: string
+  /** Spielbare Übung, die hierher führt. */
+  challenge?: ChallengeId
+  /** Öffnet den freien Spiel-Modus (Sandbox). */
+  free?: boolean
+  /** ID im Fortschritts-Speicher, falls dieser Skill schon gemessen wird. */
+  progressId?: string
+}
+
+/** Ein kleines Ziel = Spaß-Gipfel auf einem Strang. */
+export interface SmallGoal {
+  id: string
+  strand: StrandId
+  label: string
+  detail: string
+  challenge?: ChallengeId
+  free?: boolean
+  /** Schon in der App spielbar? (sonst: Konzept, noch zu bauen) */
+  ready?: boolean
+}
+
+export const NODES: PathNode[] = [
+  // ── Gehör ──────────────────────────────────────────────────────────────
+  {
+    id: 'g0',
+    strand: 'gehoer',
+    label: 'Richtung hören',
+    tag: 'Hörtrainer',
+    detail:
+      'Geht der nächste Ton hoch, runter oder bleibt gleich? Die gröbste — und wichtigste — erste Gehör-Stufe.',
+    challenge: 'hoertrainer',
+    progressId: 'g0',
+  },
+  {
+    id: 'gi',
+    strand: 'gehoer',
+    label: 'Intervalle',
+    tag: 'über Liedanfänge',
+    detail:
+      'Wie weit ist der Sprung? Abstände am Klang erkennen, mit bekannten Liedanfängen verankern (Quinte, Quarte, Oktave …).',
+  },
+  {
+    id: 'gs',
+    strand: 'gehoer',
+    label: 'Grundton · Stufen',
+    tag: 'Dur/Moll, Wechsel',
+    detail:
+      'Auf welchem Ton ruht das Lied (Grundton)? Ist es Dur oder Moll? Welche Stufe ist ein Ton? Die feine, mächtige Gehör-Ebene.',
+  },
+
+  // ── Improvisation ──────────────────────────────────────────────────────
+  {
+    id: 'im0',
+    strand: 'improv',
+    label: 'Pentatonik-Skala',
+    tag: 'Sandbox',
+    detail:
+      'Die markierten Töne der Moll-Pentatonik — hier klingt alles. Der sichere Spielplatz, auf dem du nichts falsch machen kannst.',
+    free: true,
+  },
+  {
+    id: 'im1',
+    strand: 'improv',
+    label: 'Über Loop spielen',
+    tag: 'keine falschen Töne',
+    detail:
+      'Über den 12-Bar-Blues-Loop frei Töne setzen — Phrasen probieren, Pausen lassen, dem eigenen Ohr folgen.',
+    free: true,
+  },
+  {
+    id: 'im2',
+    strand: 'improv',
+    label: 'Variieren',
+    detail:
+      'Eine kleine Idee aufgreifen und weiterdrehen: höher, tiefer, anders rhythmisiert. Aus einem Motiv wird eine Linie.',
+  },
+
+  // ── Akkorde & Begleitung ───────────────────────────────────────────────
+  {
+    id: 'm1',
+    strand: 'akkorde',
+    label: 'Tasten finden',
+    tag: 'Tastenfinder',
+    detail:
+      'Zu jedem Tonnamen blind die Taste finden. Das Fundament für alles — Greifen, Orientieren, Spielen. Die schwarzen Tasten sind deine Anker.',
+    challenge: 'tastenfinder',
+    progressId: 'm1',
+  },
+  {
+    id: 'w2',
+    strand: 'akkorde',
+    label: 'Akkord greifen',
+    tag: 'Akkordgriff',
+    detail:
+      'Drei Töne (1–3–5) als einen Griff. Das Grundbauteil jeder Begleitung. Rezept: Grundton +4+3 Halbtöne = Dur, +3+4 = Moll.',
+    challenge: 'akkordgriff',
+    progressId: 'w2',
+  },
+  {
+    id: 'ak1',
+    strand: 'akkorde',
+    label: 'I · IV · V',
+    tag: 'Hauptakkorde',
+    detail:
+      'Tonika, Subdominante, Dominante — die drei Hauptakkorde einer Tonart. Damit lassen sich erstaunlich viele Lieder begleiten.',
+  },
+  {
+    id: 'ak2',
+    strand: 'akkorde',
+    label: 'Im 4/4 begleiten',
+    tag: 'auf 1-2-3-4',
+    detail:
+      'Den Akkord im gleichmäßigen Puls anschlagen und rechtzeitig zum nächsten wechseln. Schlicht 1-2-3-4 reicht — das klingt schon nach Begleitung.',
+  },
+
+  // ── Koordination (nebenher) ────────────────────────────────────────────
+  {
+    id: 'k0',
+    strand: 'koord',
+    label: 'Eine Hand sicher',
+    tag: 'automatisieren',
+    detail:
+      'Erst läuft jede Hand für sich, fast ohne Hinsehen. Dann hat der Kopf frei für die andere.',
+  },
+  {
+    id: 'k1',
+    strand: 'koord',
+    label: 'Hände zusammen',
+    tag: 'Mini-Stück, langsam',
+    detail:
+      'Beide Hände gleichzeitig an einem sehr einfachen Stück — langsam, dosiert, immer wieder. Kein Mini-Spiel, sondern Üben am Stück. Die einzige echte Wand; deshalb läuft sie nebenher.',
+  },
 ]
 
-export const ALL_SKILLS: Skill[] = TIERS.flat()
+export const SMALL_GOALS: SmallGoal[] = [
+  {
+    id: 'goal-improv',
+    strand: 'improv',
+    label: 'Über einen Loop improvisieren',
+    detail:
+      'Eine Hand, „keine falschen Töne", klingt sofort nach Musik. Man kann nicht scheitern — dein Anti-Frust-Anker. Schon spielbar im freien Modus.',
+    free: true,
+    ready: true,
+  },
+  {
+    id: 'goal-detektiv',
+    strand: 'gehoer',
+    label: 'Melodien-Detektiv',
+    detail:
+      'Eine bekannte Melodie (Happy Birthday, ein Zelda-Motiv) ohne Noten am Klavier raushören. Riesiger Aha-Moment. Nutzt Richtung + Intervalle. (Noch zu bauen.)',
+  },
+  {
+    id: 'goal-ohr',
+    strand: 'gehoer',
+    label: 'Ohr-Mikro-Spiele',
+    detail:
+      'Dur/Moll und Akkordwechsel hören — 2-Minuten-Häppchen, null Motorik. Überträgt sich sofort aufs Hören echter Songs. (Noch zu bauen.)',
+  },
+  {
+    id: 'goal-kadenz',
+    strand: 'akkorde',
+    label: 'Kadenz-Loop (3 Akkorde)',
+    detail:
+      'I–IV–V als Schleife flüssig spielen — das Skelett tausender Songs, klingt augenblicklich nach echtem Stück. (Noch zu bauen.)',
+  },
+]
 
-// Kurzform fürs Anzeigen im Graph: "Du kannst …" weg, erster Buchstabe groß,
-// Schlusspunkt weg. "Du kannst jede Taste benennen." -> "Jede Taste benennen".
-export function shortLabel(label: string): string {
-  const s = label.replace(/^Du kannst\s+/i, '').replace(/\.\s*$/, '')
-  return s.charAt(0).toUpperCase() + s.slice(1)
+export const PARETO = {
+  label: 'Pareto-Ziel',
+  detail:
+    'Das schnelle, lohnende Zwischenziel: eine Melodie, die du schon spielen kannst, links mit drei Akkorden (I·IV·V) im 4/4 auf 1-2-3-4 begleiten — beide Hände zusammen, sodass es ordentlich klingt. Holt 80 % des Spaßes mit 20 % der Fertigkeiten.',
 }
 
-/** Lernziel-ID, zu der eine Challenge gehört (für Fortschritts-Zuordnung). */
-export function skillIdForChallenge(id: ChallengeId): string | undefined {
-  return ALL_SKILLS.find((s) => s.challenge === id)?.id
+export const NORDSTERN = {
+  label: 'Nordstern',
+  detail:
+    'Das große Ziel: aus einer eigenen inneren Melodie (die sich beim Spielen weiterentwickeln darf) ein ganzes Klavierstück selbst spielen. Hier laufen alle Stränge zusammen.',
 }
+
+export const nodesOf = (strand: StrandId): PathNode[] =>
+  NODES.filter((n) => n.strand === strand)
+
+export const goalsOf = (strand: StrandId): SmallGoal[] =>
+  SMALL_GOALS.filter((g) => g.strand === strand)

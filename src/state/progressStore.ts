@@ -3,8 +3,8 @@ import { persist } from 'zustand/middleware'
 
 // Lokaler (localStorage) Fortschritts-Speicher pro Lernziel. Bewusst LOKAL und
 // rein informativ — kein Backend, kein Score, keine Streaks/Punkte: er zeigt nur
-// "wo stehst du", damit der Lerngraph den Stand farblich abbilden kann. Lässt
-// sich jederzeit zurücksetzen (siehe Lerngraph).
+// "wo stehst du", damit die Lern-Landkarte den Stand farblich abbilden kann. Lässt
+// sich jederzeit zurücksetzen (siehe Lern-Landkarte).
 
 export type SkillLevel = 'erreicht' | 'verinnerlicht' | 'gemeistert'
 

@@ -1,59 +1,34 @@
-import { useCallback, useLayoutEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import {
-  TIERS,
-  ALL_SKILLS,
-  CATEGORIES,
-  CATEGORY_COLOR,
+  STRANDS,
+  STRAND_COLOR,
   CHALLENGE_LABEL,
   STANDALONE_CHALLENGES,
-  shortLabel,
+  NODES,
+  PARETO,
+  NORDSTERN,
+  nodesOf,
+  goalsOf,
   type ChallengeId,
-  type Skill,
+  type PathNode,
+  type SmallGoal,
 } from '../music/learningPath'
 import { useProgressStore, type SkillLevel } from '../state/progressStore'
 
-interface Edge {
-  from: string
-  to: string
-  d: string
+// Farbe der Umrandung nach Fortschritt (nur für Knoten mit progressId).
+const RING: Record<'none' | 'available' | SkillLevel, string> = {
+  none: 'rgba(239,230,214,0.14)',
+  available: 'rgba(239,230,214,0.24)',
+  erreicht: 'rgba(155,184,138,0.5)',
+  verinnerlicht: 'rgba(155,184,138,0.8)',
+  gemeistert: '#9bb88a',
 }
 
-const FAINT = 'rgba(239,230,214,0.16)'
-
-// Fortschritts-Status eines Lernziels fürs Colorcoding.
-type Status = 'none' | 'available' | SkillLevel
-
-interface StatusStyle {
-  ring: string
-  bg: string
-  dim: boolean
+interface Detail {
+  label: string
+  detail: string
+  color: string
 }
-const STATUS_STYLE: Record<Status, StatusStyle> = {
-  none: { ring: 'rgba(239,230,214,0.10)', bg: 'rgba(36,29,24,0.35)', dim: true },
-  available: {
-    ring: 'rgba(239,230,214,0.18)',
-    bg: 'rgba(36,29,24,0.55)',
-    dim: false,
-  },
-  erreicht: {
-    ring: 'rgba(155,184,138,0.45)',
-    bg: 'rgba(155,184,138,0.08)',
-    dim: false,
-  },
-  verinnerlicht: {
-    ring: 'rgba(155,184,138,0.8)',
-    bg: 'rgba(155,184,138,0.16)',
-    dim: false,
-  },
-  gemeistert: { ring: '#9bb88a', bg: 'rgba(155,184,138,0.26)', dim: false },
-}
-const STATUS_LEGEND: { status: Status; label: string }[] = [
-  { status: 'none', label: 'keine Übung' },
-  { status: 'available', label: 'Übung offen' },
-  { status: 'erreicht', label: 'erreicht' },
-  { status: 'verinnerlicht', label: 'verinnerlicht' },
-  { status: 'gemeistert', label: 'gemeistert' },
-]
 
 export default function LearningPath({
   onStartChallenge,
@@ -62,78 +37,33 @@ export default function LearningPath({
   onStartChallenge?: (id: ChallengeId) => void
   onStartFreeMode?: () => void
 }) {
-  const graphRef = useRef<HTMLDivElement | null>(null)
-  const nodeRefs = useRef<Map<string, HTMLElement>>(new Map())
-  const [edges, setEdges] = useState<Edge[]>([])
-  const [size, setSize] = useState({ w: 0, h: 0 })
-  const [hovered, setHovered] = useState<string | null>(null)
-  const [selected, setSelected] = useState<Skill | null>(null)
-
+  const [selected, setSelected] = useState<Detail | null>(null)
   const progress = useProgressStore((s) => s.progress)
   const resetProgress = useProgressStore((s) => s.reset)
-  const statusOf = (skill: Skill): Status =>
-    progress[skill.id] ?? (skill.challenge ? 'available' : 'none')
 
-  const setNodeRef = useCallback(
-    (id: string) => (el: HTMLElement | null) => {
-      if (el) nodeRefs.current.set(id, el)
-      else nodeRefs.current.delete(id)
-    },
-    [],
-  )
+  // Klick: spielbar → starten; sonst Details zeigen.
+  const activate = (item: PathNode | SmallGoal) => {
+    if (item.challenge && onStartChallenge) return onStartChallenge(item.challenge)
+    if (item.free && onStartFreeMode) return onStartFreeMode()
+    setSelected({
+      label: item.label,
+      detail: item.detail,
+      color: STRAND_COLOR[item.strand],
+    })
+  }
 
-  // Kanten aus den gemessenen DOM-Positionen rechnen — robust gegen Umbruch.
-  const measure = useCallback(() => {
-    const graph = graphRef.current
-    if (!graph) return
-    const origin = graph.getBoundingClientRect()
-    const next: Edge[] = []
-
-    for (const skill of ALL_SKILLS) {
-      const target = nodeRefs.current.get(skill.id)
-      if (!target || skill.deps.length === 0) continue
-      const tr = target.getBoundingClientRect()
-
-      skill.deps.forEach((depId, i) => {
-        const source = nodeRefs.current.get(depId)
-        if (!source) return
-        const sr = source.getBoundingClientRect()
-
-        const sx = sr.left - origin.left + sr.width / 2
-        const sy = sr.bottom - origin.top
-        // Eingangspunkte am Ziel auffächern, damit Pfeile sich nicht stapeln.
-        const tx =
-          tr.left - origin.left + (tr.width * (i + 1)) / (skill.deps.length + 1)
-        const ty = tr.top - origin.top - 2
-        const my = (sy + ty) / 2
-
-        next.push({
-          from: depId,
-          to: skill.id,
-          d: `M${sx},${sy} C${sx},${my} ${tx},${my} ${tx},${ty}`,
-        })
-      })
-    }
-
-    setEdges(next)
-    setSize({ w: graph.offsetWidth, h: graph.offsetHeight })
-  }, [])
-
-  useLayoutEffect(() => {
-    measure()
-    const graph = graphRef.current
-    if (!graph || typeof ResizeObserver === 'undefined') return
-    const ro = new ResizeObserver(measure)
-    ro.observe(graph)
-    return () => ro.disconnect()
-  }, [measure])
+  const statusOf = (node: PathNode): 'none' | 'available' | SkillLevel => {
+    if (node.progressId && progress[node.progressId]) return progress[node.progressId]
+    return node.challenge || node.free ? 'available' : 'none'
+  }
 
   return (
     <div className="flex w-full flex-col gap-6">
-      {/* Kopf: Einstieg in den freien Spiel-Modus */}
+      {/* Kopf */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-bone/50">
-          Dein Weg vom Tastenfinden bis zum freien Begleiten.
+        <p className="max-w-xl text-sm text-bone/55">
+          Kein einzelner Aufstieg, sondern vier Stränge, die jeder für sich schon
+          Musik machen — und oben im Nordstern zusammenlaufen.
         </p>
         {onStartFreeMode && (
           <button
@@ -147,171 +77,162 @@ export default function LearningPath({
       </div>
 
       {/* Legende */}
-      <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-bone/70">
-        {CATEGORIES.map((c) => (
-          <span key={c.cat} className="inline-flex items-center gap-2">
-            <span
-              className="inline-block h-2.5 w-2.5 rounded-sm"
-              style={{ background: c.color }}
-            />
-            {c.name}
-          </span>
-        ))}
-      </div>
-      {/* Status-Legende (Farbe der Umrandung) + Fortschritt zurücksetzen */}
-      <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-bone/60">
-        <span className="text-bone/40">Stand:</span>
-        {STATUS_LEGEND.map(({ status, label }) => (
-          <span key={status} className="inline-flex items-center gap-1.5">
-            <span
-              className="inline-block h-2.5 w-2.5 rounded-sm"
-              style={{
-                background: STATUS_STYLE[status].ring,
-                opacity: STATUS_STYLE[status].dim ? 0.5 : 1,
-              }}
-            />
-            {label}
-          </span>
-        ))}
+      <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-bone/55">
+        <span className="inline-flex items-center gap-1.5">
+          <span style={{ color: '#9bb88a' }}>✓</span> schon in der App
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span className="text-amber-soft">★</span> kleines Ziel (Spaß-Gipfel)
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span style={{ color: '#cf9277' }}>▦</span> läuft nebenher
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span className="text-amber-soft">◆</span> Nordstern
+        </span>
         {Object.keys(progress).length > 0 && (
           <button
             type="button"
             onClick={resetProgress}
             className="ease-soft rounded-full border border-bone/15 px-2.5 py-0.5 text-bone/45 transition-colors hover:border-amber-glow/50 hover:text-amber-soft"
           >
-            zurücksetzen
+            Fortschritt zurücksetzen
           </button>
         )}
       </div>
-      <p className="text-center text-xs text-bone/40">
-        Pfeil = „setzt voraus". Zeig auf ein Ziel, um seine Verbindungen zu
-        sehen — tipp es an für die Details. Der farbige Rahmen zeigt deinen Stand.
-      </p>
 
-      {/* Graph */}
-      <div ref={graphRef} className="relative">
-        <svg
-          className="pointer-events-none absolute inset-0"
-          width={size.w}
-          height={size.h}
-          viewBox={`0 0 ${size.w} ${size.h}`}
-          aria-hidden
-        >
-          <defs>
-            <marker
-              id="lp-arrow"
-              viewBox="0 0 8 8"
-              refX="6.5"
-              refY="4"
-              markerWidth="6"
-              markerHeight="6"
-              orient="auto"
+      {/* Stränge */}
+      <div className="flex flex-col gap-3">
+        {STRANDS.map((strand) => {
+          const nodes = nodesOf(strand.id)
+          const goals = goalsOf(strand.id)
+          return (
+            <section
+              key={strand.id}
+              className="flex gap-3 rounded-xl border bg-ink-800/40 p-3 sm:gap-4 sm:p-4"
+              style={{
+                borderColor: strand.nebenher ? `${strand.color}66` : 'rgba(239,230,214,0.08)',
+                borderStyle: strand.nebenher ? 'dashed' : 'solid',
+              }}
             >
-              <path d="M0,0 L8,4 L0,8 z" fill="context-stroke" />
-            </marker>
-          </defs>
-          {edges.map((e, i) => {
-            const on = hovered === e.from || hovered === e.to
-            return (
-              <path
-                key={i}
-                d={e.d}
-                fill="none"
-                stroke={on ? CATEGORY_COLOR[skillCat(e.from)] : FAINT}
-                strokeWidth={on ? 2 : 1.3}
-                opacity={hovered && !on ? 0.4 : 1}
-                markerEnd="url(#lp-arrow)"
-                style={{ transition: 'stroke 0.15s, opacity 0.15s' }}
-              />
-            )
-          })}
-        </svg>
+              {/* Strang-Label */}
+              <div className="flex w-20 shrink-0 flex-col gap-0.5 sm:w-28">
+                <span className="inline-flex items-center gap-1.5">
+                  <span
+                    className="inline-block h-2.5 w-2.5 rounded-sm"
+                    style={{ background: strand.color }}
+                  />
+                  <span className="font-display text-sm text-bone">{strand.name}</span>
+                </span>
+                <span className="text-[11px] text-bone/45">{strand.sub}</span>
+              </div>
 
-        <div className="relative z-10 flex flex-col gap-11">
-          {TIERS.map((tier, ti) => (
-            <div
-              key={ti}
-              className="flex flex-wrap items-stretch justify-center gap-4"
-            >
-              {tier.map((skill) => {
-                const isGoal = skill.cat === 'ziel'
-                const isSel = selected?.id === skill.id
-                const color = CATEGORY_COLOR[skill.cat]
-                const playable = skill.challenge && onStartChallenge
-                const status = statusOf(skill)
-                const ss = STATUS_STYLE[status]
-                const ring = isSel
-                  ? color
-                  : isGoal
-                    ? 'rgba(239,230,214,0.12)'
-                    : ss.ring
-                return (
-                  <button
-                    key={skill.id}
-                    ref={setNodeRef(skill.id)}
-                    type="button"
-                    title={
-                      playable
-                        ? `Übung „${CHALLENGE_LABEL[skill.challenge!]}" starten`
-                        : undefined
-                    }
-                    onMouseEnter={() => setHovered(skill.id)}
-                    onMouseLeave={() => setHovered(null)}
-                    onFocus={() => setHovered(skill.id)}
-                    onBlur={() => setHovered(null)}
-                    onClick={() =>
-                      playable
-                        ? onStartChallenge!(skill.challenge!)
-                        : setSelected(skill)
-                    }
-                    className={`ease-soft flex max-w-[210px] flex-1 basis-[150px] items-center rounded-xl border px-3 py-2.5 text-left text-[13px] leading-snug text-bone transition-all duration-150 hover:-translate-y-0.5 ${
-                      isGoal ? 'justify-center text-center font-display' : ''
-                    }`}
-                    style={{
-                      borderTopColor: ring,
-                      borderRightColor: ring,
-                      borderBottomColor: ring,
-                      borderLeftWidth: isGoal ? 1 : 4,
-                      borderLeftColor: color,
-                      background: isGoal
-                        ? 'rgba(240,212,154,0.10)'
-                        : isSel
-                          ? 'rgba(47,38,31,0.9)'
-                          : ss.bg,
-                      boxShadow: isSel ? `0 0 18px ${color}40` : 'none',
-                      opacity: ss.dim && !isGoal && !isSel ? 0.6 : 1,
-                      maxWidth: isGoal ? 360 : undefined,
-                      flexBasis: isGoal ? 'auto' : undefined,
-                      fontSize: isGoal ? 15 : undefined,
-                    }}
-                  >
-                    {playable && (
-                      <span
-                        aria-hidden
-                        className="mr-1.5 text-amber-soft"
-                        title="spielbare Übung"
-                      >
-                        ▶
+              {/* Inhalt: Checkpoints + kleine Ziele */}
+              <div className="flex min-w-0 flex-1 flex-col gap-2.5">
+                <div className="flex flex-wrap items-center gap-x-1.5 gap-y-2">
+                  {nodes.map((node, i) => {
+                    const status = statusOf(node)
+                    const launchable =
+                      (node.challenge && onStartChallenge) || (node.free && onStartFreeMode)
+                    return (
+                      <span key={node.id} className="inline-flex items-center">
+                        {i > 0 && <span className="mr-1.5 text-bone/25">→</span>}
+                        <button
+                          type="button"
+                          onClick={() => activate(node)}
+                          title={
+                            node.challenge
+                              ? `Übung „${CHALLENGE_LABEL[node.challenge]}" starten`
+                              : node.free
+                                ? 'Freien Modus starten'
+                                : undefined
+                          }
+                          className="ease-soft flex flex-col items-start rounded-lg border bg-ink-700/50 px-2.5 py-1.5 text-left transition-all duration-150 hover:-translate-y-0.5"
+                          style={{
+                            borderColor: RING[status],
+                            borderLeftWidth: 3,
+                            borderLeftColor: strand.color,
+                          }}
+                        >
+                          <span className="flex items-center gap-1 text-[13px] leading-tight text-bone">
+                            {launchable && (
+                              <span aria-hidden className="text-amber-soft">
+                                {node.challenge ? '▶' : '♪'}
+                              </span>
+                            )}
+                            {node.label}
+                            {status === 'gemeistert' && (
+                              <span aria-hidden style={{ color: '#9bb88a' }} title="gemeistert">
+                                ✓
+                              </span>
+                            )}
+                          </span>
+                          {node.tag && (
+                            <span className="text-[10.5px] leading-tight text-bone/45">
+                              {node.challenge && status === 'available' ? '✓ ' : ''}
+                              {node.tag}
+                            </span>
+                          )}
+                        </button>
                       </span>
-                    )}
-                    <span className="flex-1">{shortLabel(skill.label)}</span>
-                    {status === 'gemeistert' && (
-                      <span
-                        aria-hidden
-                        className="ml-1.5"
-                        style={{ color: '#9bb88a' }}
-                        title="gemeistert"
+                    )
+                  })}
+                </div>
+
+                {goals.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {goals.map((goal) => (
+                      <button
+                        key={goal.id}
+                        type="button"
+                        onClick={() => activate(goal)}
+                        title={goal.ready ? 'spielbar' : 'kleines Ziel — noch zu bauen'}
+                        className="ease-soft inline-flex items-center gap-1 rounded-full border border-amber-glow/40 bg-amber-glow/10 px-2.5 py-1 text-[12px] text-amber-soft transition-all hover:-translate-y-0.5 hover:border-amber-glow"
+                        style={{ opacity: goal.ready ? 1 : 0.78 }}
                       >
-                        ✓
-                      </span>
-                    )}
-                  </button>
-                )
-              })}
-            </div>
-          ))}
-        </div>
+                        <span aria-hidden>★</span>
+                        {goal.label}
+                        {goal.free && <span aria-hidden className="text-amber-soft/70">♪</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </section>
+          )
+        })}
       </div>
+
+      {/* Pareto-Ziel */}
+      <button
+        type="button"
+        onClick={() => setSelected({ ...PARETO, color: '#e0b15e' })}
+        className="ease-soft flex flex-col items-start gap-1 rounded-xl border border-amber-glow/45 bg-amber-glow/10 p-4 text-left transition-all hover:border-amber-glow"
+      >
+        <span className="inline-flex items-center gap-2">
+          <span className="text-amber-soft">★</span>
+          <span className="font-display text-base text-amber-soft">
+            Pareto-Ziel — der schnelle Spaß
+          </span>
+        </span>
+        <span className="text-sm text-bone/65">
+          Bekannte Melodie + 3 Akkorde (I·IV·V) im 4/4, Hände zusammen. 80 % Spaß
+          mit 20 % der Fertigkeiten.
+        </span>
+      </button>
+
+      {/* Nordstern */}
+      <button
+        type="button"
+        onClick={() => setSelected({ ...NORDSTERN, color: '#f0d49a' })}
+        className="ease-soft flex flex-col items-center gap-1 rounded-xl border border-amber-glow/60 bg-amber-glow/15 p-4 text-center transition-all hover:border-amber-glow"
+      >
+        <span className="font-display text-lg text-amber-soft">◆ Nordstern</span>
+        <span className="text-sm text-bone/70">
+          Aus einer eigenen Melodie ein ganzes Klavierstück selbst spielen — hier
+          laufen alle Stränge zusammen.
+        </span>
+      </button>
 
       {/* Detail-Panel */}
       <div
@@ -320,35 +241,19 @@ export default function LearningPath({
       >
         {selected ? (
           <div className="flex flex-col gap-1.5">
-            <div className="flex items-center gap-2">
+            <h3 className="flex items-center gap-2 font-display text-xl text-amber-soft">
               <span
                 className="inline-block h-2.5 w-2.5 rounded-sm"
-                style={{ background: CATEGORY_COLOR[selected.cat] }}
+                style={{ background: selected.color }}
               />
-              <span className="text-xs uppercase tracking-wider text-bone/45">
-                {CATEGORIES.find((c) => c.cat === selected.cat)?.name}
-              </span>
-            </div>
-            <h3 className="font-display text-xl text-amber-soft">
-              {shortLabel(selected.label)}
+              {selected.label}
             </h3>
-            <p className="text-sm leading-relaxed text-bone/75">
-              {selected.detail}
-            </p>
-            {selected.challenge && onStartChallenge && (
-              <button
-                type="button"
-                onClick={() => onStartChallenge(selected.challenge!)}
-                className="ease-soft mt-1 w-fit rounded-full border border-amber-glow/50 bg-ink-700/70 px-4 py-1.5 text-sm text-amber-soft transition-all hover:border-amber-glow hover:bg-ink-600"
-              >
-                ▶ Challenge starten
-              </button>
-            )}
+            <p className="text-sm leading-relaxed text-bone/75">{selected.detail}</p>
           </div>
         ) : (
           <p className="text-sm text-bone/40">
-            Wähl ein Lernziel aus, um zu sehen, worum es geht und worauf es dabei
-            ankommt. Ziele mit ▶ haben eine spielbare Übung — direkt anklicken.
+            Tipp einen Checkpoint, ein ★-Ziel oder den Nordstern an, um zu sehen,
+            worum es geht. ▶ startet eine Übung, ♪ den freien Modus.
           </p>
         )}
       </div>
@@ -360,18 +265,16 @@ export default function LearningPath({
             Übungen zum Mitspielen
           </p>
           <div className="flex flex-wrap gap-2">
-            {ALL_SKILLS.filter((s) => s.challenge).map((s) => (
+            {NODES.filter((n) => n.challenge).map((n) => (
               <button
-                key={s.id}
+                key={n.id}
                 type="button"
-                onClick={() => onStartChallenge(s.challenge!)}
+                onClick={() => onStartChallenge(n.challenge!)}
                 className="ease-soft flex items-center gap-2 rounded-full border border-amber-glow/40 bg-ink-700/60 px-4 py-1.5 text-sm text-amber-soft transition-all hover:border-amber-glow hover:bg-ink-600"
               >
                 <span aria-hidden>▶</span>
-                <span className="font-medium">
-                  {CHALLENGE_LABEL[s.challenge!]}
-                </span>
-                <span className="text-bone/45">— {shortLabel(s.label)}</span>
+                <span className="font-medium">{CHALLENGE_LABEL[n.challenge!]}</span>
+                <span className="text-bone/45">— {n.label}</span>
               </button>
             ))}
             {STANDALONE_CHALLENGES.map((id) => (
@@ -383,7 +286,7 @@ export default function LearningPath({
               >
                 <span aria-hidden>▶</span>
                 <span className="font-medium">{CHALLENGE_LABEL[id]}</span>
-                <span className="text-bone/40">— Artefakt, noch keinem Ziel zugeordnet</span>
+                <span className="text-bone/40">— Artefakt, noch keinem Strang zugeordnet</span>
               </button>
             ))}
           </div>
@@ -391,8 +294,4 @@ export default function LearningPath({
       )}
     </div>
   )
-}
-
-function skillCat(id: string) {
-  return ALL_SKILLS.find((s) => s.id === id)?.cat ?? 'mec'
 }
