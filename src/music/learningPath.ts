@@ -10,6 +10,7 @@ export type ChallengeId =
   | 'tastenfinder'
   | 'hoertrainer'
   | 'durmoll'
+  | 'intervalle'
   | 'akkordgriff'
   | 'notenregen'
 
@@ -17,6 +18,7 @@ export const CHALLENGE_LABEL: Record<ChallengeId, string> = {
   tastenfinder: 'Tastenfinder',
   hoertrainer: 'Hörtrainer',
   durmoll: 'Dur/Moll-Ohr',
+  intervalle: 'Intervall-Ohr',
   akkordgriff: 'Akkordgriff',
   notenregen: 'Notenregen',
 }
@@ -108,9 +110,11 @@ export const NODES: PathNode[] = [
     id: 'gi',
     strand: 'gehoer',
     label: 'Intervalle',
-    tag: 'über Liedanfänge',
+    tag: 'Intervall-Ohr',
     detail:
-      'Wie weit ist der Sprung? Abstände am Klang erkennen, mit bekannten Liedanfängen verankern (Quinte, Quarte, Oktave …).',
+      'Wie weit ist der Sprung? Abstände am Klang erkennen, mit bekannten Liedanfängen verankern. Stufen: weite Sprünge → + Terzen → + Sekunden.',
+    challenge: 'intervalle',
+    progressId: 'gi',
   },
   {
     id: 'gs',
