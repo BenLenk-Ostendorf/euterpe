@@ -6,11 +6,17 @@
 // reine Orientierung. Fortschritts-Farbe kommt aus progressStore (lokal).
 
 /** Spielbare Challenge (sofern vorhanden). */
-export type ChallengeId = 'tastenfinder' | 'hoertrainer' | 'akkordgriff' | 'notenregen'
+export type ChallengeId =
+  | 'tastenfinder'
+  | 'hoertrainer'
+  | 'durmoll'
+  | 'akkordgriff'
+  | 'notenregen'
 
 export const CHALLENGE_LABEL: Record<ChallengeId, string> = {
   tastenfinder: 'Tastenfinder',
   hoertrainer: 'Hörtrainer',
+  durmoll: 'Dur/Moll-Ohr',
   akkordgriff: 'Akkordgriff',
   notenregen: 'Notenregen',
 }
@@ -89,6 +95,16 @@ export const NODES: PathNode[] = [
     progressId: 'g0',
   },
   {
+    id: 'gd',
+    strand: 'gehoer',
+    label: 'Dur/Moll hören',
+    tag: 'Dur/Moll-Ohr',
+    detail:
+      'Klingt ein Akkord fröhlich (Dur) oder traurig (Moll)? Reines Hören, keine Motorik — das schnellste Ohr-Erfolgserlebnis. Stufen: Grundstellung → Umkehrungen → gebrochen.',
+    challenge: 'durmoll',
+    progressId: 'gd',
+  },
+  {
     id: 'gi',
     strand: 'gehoer',
     label: 'Intervalle',
@@ -100,9 +116,9 @@ export const NODES: PathNode[] = [
     id: 'gs',
     strand: 'gehoer',
     label: 'Grundton · Stufen',
-    tag: 'Dur/Moll, Wechsel',
+    tag: 'Wechsel hören',
     detail:
-      'Auf welchem Ton ruht das Lied (Grundton)? Ist es Dur oder Moll? Welche Stufe ist ein Ton? Die feine, mächtige Gehör-Ebene.',
+      'Auf welchem Ton ruht das Lied (Grundton)? Welche Stufe ist ein Ton? Und wann wechselt die Harmonie? Die feine, mächtige Gehör-Ebene.',
   },
 
   // ── Improvisation ──────────────────────────────────────────────────────
@@ -211,7 +227,9 @@ export const SMALL_GOALS: SmallGoal[] = [
     strand: 'gehoer',
     label: 'Ohr-Mikro-Spiele',
     detail:
-      'Dur/Moll und Akkordwechsel hören — 2-Minuten-Häppchen, null Motorik. Überträgt sich sofort aufs Hören echter Songs. (Noch zu bauen.)',
+      'Dur/Moll und Akkordwechsel hören — 2-Minuten-Häppchen, null Motorik. Überträgt sich sofort aufs Hören echter Songs. Teil 1 „Dur/Moll" ist jetzt spielbar (▶); Akkordwechsel folgt.',
+    challenge: 'durmoll',
+    ready: true,
   },
   {
     id: 'goal-kadenz',

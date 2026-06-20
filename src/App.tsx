@@ -21,6 +21,7 @@ import LearningPath from './components/LearningPath'
 import NotenregenGame from './components/NotenregenGame'
 import TastenfinderGame from './components/TastenfinderGame'
 import HoertrainerGame from './components/HoertrainerGame'
+import DurMollGame from './components/DurMollGame'
 import AkkordgriffGame from './components/AkkordgriffGame'
 import type { ChallengeId } from './music/learningPath'
 
@@ -124,6 +125,8 @@ export default function App() {
           <TastenfinderGame onExit={() => setOverlay(null)} />
         ) : overlay === 'hoertrainer' ? (
           <HoertrainerGame onExit={() => setOverlay(null)} />
+        ) : overlay === 'durmoll' ? (
+          <DurMollGame onExit={() => setOverlay(null)} />
         ) : overlay === 'akkordgriff' ? (
           <AkkordgriffGame onExit={() => setOverlay(null)} />
         ) : overlay === 'notenregen' ? (

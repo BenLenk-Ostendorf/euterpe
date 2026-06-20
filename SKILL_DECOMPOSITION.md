@@ -195,7 +195,7 @@ schlichte Akkorde im Puls.
 - *Richtung/Kontur hören* 🎮 Hörtrainer (`g0`)
 - *Akkord greifen* 🎮 Akkordgriff (`w2`)
 
-**Neu zu bauen — Gehör:** Intervalle (Anker + Abgleich) · Grundton hören · Dur/Moll hören · Akkordwechsel hören · „passt"-beurteilen
+**Neu zu bauen — Gehör:** Intervalle (Anker + Abgleich) · Grundton hören · **Dur/Moll hören ✅ gebaut (Dur/Moll-Ohr, Checkpoint `gd`)** · Akkordwechsel hören · „passt"-beurteilen
 **Neu zu bauen — Wissen:** Ankerlieder · Stufen-Benennung · Akkorde der Tonart (I/IV/V) · Stufe→Akkord-Zuordnung
 **Neu zu bauen — Mechanik/Timing:** Puls fühlen · auf den Schlag timen · Griff rechtzeitig wechseln · Hand automatisieren · Hände zusammenführen
 
