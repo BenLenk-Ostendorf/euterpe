@@ -18,6 +18,7 @@ export type ChallengeId =
   | 'akkordgriff'
   | 'stufengriff'
   | 'begleit'
+  | 'variation'
   | 'notenregen'
 
 export const CHALLENGE_LABEL: Record<ChallengeId, string> = {
@@ -32,6 +33,7 @@ export const CHALLENGE_LABEL: Record<ChallengeId, string> = {
   akkordgriff: 'Akkordgriff',
   stufengriff: 'Stufen-Greifer',
   begleit: 'Begleit-Tapper',
+  variation: 'Motiv-Variieren',
   notenregen: 'Notenregen',
 }
 
@@ -172,8 +174,11 @@ export const NODES: PathNode[] = [
     id: 'im2',
     strand: 'improv',
     label: 'Variieren',
+    tag: 'Motiv-Variieren',
     detail:
-      'Eine kleine Idee aufgreifen und weiterdrehen: höher, tiefer, anders rhythmisiert. Aus einem Motiv wird eine Linie.',
+      'Eine kleine Idee aufgreifen und weiterdrehen: als Echo, rückwärts, eine Terz höher. Aus einem Motiv wird eine Linie. Stufen: Echo → + rückwärts → + höher.',
+    challenge: 'variation',
+    progressId: 'im2',
   },
 
   // ── Akkorde & Begleitung ───────────────────────────────────────────────

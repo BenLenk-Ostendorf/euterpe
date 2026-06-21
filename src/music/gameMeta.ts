@@ -201,6 +201,21 @@ export const GAME_META: Record<ChallengeId, GameMeta> = {
       'Am MIDI-Klavier am wertvollsten (echtes Greifen im Tempo); per Maus nur ein Ton pro Klick — Akkorde im Puls sind so schwer zu schaffen.',
   },
 
+  variation: {
+    skill: 'Ein Motiv bewusst umformen — als Echo, rückwärts (Krebs) oder eine Terz höher.',
+    assumptions: [
+      'Improvisation beginnt nicht mit „freien" Tönen, sondern mit dem Umformen einer Idee — Variation ist der konkrete, übbare Einstieg, den freie Sandbox-Modi nicht trainieren.',
+      'Eine fest definierte Umformung (Echo/rückwärts/höher) macht den kreativen Schritt überprüfbar OHNE ein „gut/schlecht"-Urteil über Kreativität — passt zum Anti-Bewertungs-Prinzip.',
+      'In Tonleiter-Stufen statt Halbtönen zu arbeiten hält „höher" diatonisch in der Tonart — es klingt immer gut, kein Frust durch schräge Töne.',
+      'Echo zuerst trainiert das Motiv-Gedächtnis (Voraussetzung für jede Variation), bevor die Umformung dazukommt — eine Achse nach der anderen.',
+    ],
+    mechanic:
+      'Ein kurzes Motiv erklingt; eine Umformung wird angesagt (Echo / rückwärts / eine Terz höher). Du spielst die umgeformte Version — jeder Ton wird sofort gegen das erwartete Ziel geprüft (Tonklasse, Oktave egal), Pips färben sich grün/rot. „Lösung vorhören" hilft beim Lernen. Stufen: nur Echo → + rückwärts → + höher & längere Motive.',
+    devices: ['klavier', 'pc', 'handy'],
+    deviceNote:
+      'Am MIDI-Klavier am echtesten; per Maus/Touch über die Bildschirm-Klaviatur ebenso spielbar.',
+  },
+
   notenregen: {
     skill: 'Eine fallende Note rechtzeitig auf der richtigen Taste treffen (Reaktions-/Spaß-Spiel).',
     assumptions: [
