@@ -251,7 +251,6 @@ export default function StueckTrainerGame({ onExit }: { onExit: () => void }) {
   const stage = snap.stage
   const showLight = stage === 'fuehrung'
   const expectedMidi = phraseRef.current[idx]
-  const expectedPc = expectedMidi !== undefined ? pc(expectedMidi) : -1
 
   const handleDown = (midi: number) => (e: React.PointerEvent) => {
     e.preventDefault()

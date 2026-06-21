@@ -150,7 +150,7 @@ export default function MelodieGame({ onExit }: { onExit: () => void }) {
   // Eingabe gesperrt.
   const playMelody = useCallback(() => {
     clearTimers()
-    const { pcs } = roundRef.current
+    const { pcs } = roundRef.current.song
     void ensureAudioStarted().then(() => {
       setPlaying(true)
       playingRef.current = true
