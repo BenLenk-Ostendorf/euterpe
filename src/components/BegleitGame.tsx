@@ -4,24 +4,28 @@ import { attack, ensureAudioStarted, release } from '../audio/pianoSampler'
 import { useSessionStore } from '../state/sessionStore'
 import { useProgressStore } from '../state/progressStore'
 import { midiToName } from '../music/theory'
+import {
+  SONGS,
+  songById,
+  chordPcs,
+  chordTriadMidi,
+  type SongChord,
+} from '../music/songs'
 
 // Begleit-Tapper — Challenge für Node ak2 „Im 4/4 begleiten" (und das kleine
-// Ziel goal-kadenz „Kadenz-Loop"). Ein Metronom läuft im 4/4; pro Takt ein
-// Akkord. Auf die Eins greifst du den aktuellen Akkord und wechselst rechtzeitig
-// zum nächsten. Das ist die Pareto-Fähigkeit: I·IV·V im Puls begleiten.
+// Ziel goal-kadenz „Kadenz-Loop"). Ein Metronom läuft; pro Takt ein Akkord.
+// Auf die Eins greifst du den aktuellen Akkord und wechselst rechtzeitig zum
+// nächsten. Das ist die Pareto-Fähigkeit: Akkorde im Puls begleiten.
 //
-// Baut auf zwei schon trainierten Skills auf — den Dreiklang-Griff (Treffer über
-// Tonklassen) und den Puls (Timing zum Schlag) — und koppelt sie: WANN greife ich
-// WELCHEN Akkord. Gemessen wird, ob die richtigen Töne nah genug an der Eins
-// liegen.
+// ZWEI MODI:
+//   • Übung (I·IV·V) — die gewertete Leiter erreicht→verinnerlicht→gemeistert,
+//     die den Checkpoint ak2 setzt (langsam → mittel → flott).
+//   • Song — eine ECHTE Akkordfolge aus der Song-Bibliothek (z. B. Song of
+//     Storms: i–iv–V in d-Moll, 3/4) als ruhiger Übe-Loop mit Zieltasten.
+//     Nicht gewertet — fürs „begleite einen echten Song"-Gefühl.
 //
-// Drei Stufen erreicht→verinnerlicht→gemeistert:
-//   1. langsam · I–V       — 2 Akkorde, Zieltasten leuchten   (erreicht)
-//   2. mittel · I–IV–V     — 3 Akkorde, blind                 (verinnerlicht)
-//   3. flott · I–IV–V–I    — voller Loop, schneller           (gemeistert)
-//
-// Feedback informiert (richtig & im Takt / zu spät / falsch), bewertet nie.
-// Kein Punktestand.
+// Baut auf Dreiklang-Griff (Treffer über Tonklassen) + Puls (Timing). Feedback
+// informiert (im Takt / etwas spät / falsch), bewertet nie. Kein Punktestand.
 
 type Stage = 'langsam' | 'mittel' | 'flott'
 
@@ -45,26 +49,39 @@ const SPAN = 24
 const pc = (m: number) => ((m % 12) + 12) % 12
 const isWhitePc = (p: number) => [0, 2, 4, 5, 7, 9, 11].includes(p)
 
-// Die drei Hauptakkorde in C-Dur (alle Dur-Dreiklänge).
-interface Chord {
-  rootMidi: number
+// Einheitlicher, schon aufbereiteter Akkord fürs Spiel (egal ob Übung/Song).
+interface PlayChord {
+  label: string // Anzeigename, z. B. 'C-Dur' / 'd-Moll'
   roman: string
-}
-const I: Chord = { rootMidi: 60, roman: 'I' }
-const IV: Chord = { rootMidi: 65, roman: 'IV' }
-const V: Chord = { rootMidi: 67, roman: 'V' }
-const PROGRESSION: Record<Stage, Chord[]> = {
-  langsam: [I, V],
-  mittel: [I, IV, V],
-  flott: [I, IV, V, I],
+  pcs: Set<number> // Tonklassen — fürs octav-/lage-unabhängige Matchen
+  notes: number[] // Grundstellung als MIDI — für die Zieltasten
 }
 
-const triadNotes = (rootMidi: number) => [rootMidi, rootMidi + 4, rootMidi + 7]
-const triadPcs = (rootMidi: number) => new Set([pc(rootMidi), pc(rootMidi + 4), pc(rootMidi + 7)])
-const chordName = (rootMidi: number) => `${midiToName(rootMidi)}-Dur`
+const major = (rootMidi: number, roman: string): PlayChord => ({
+  label: `${midiToName(rootMidi)}-Dur`,
+  roman,
+  pcs: new Set([pc(rootMidi), pc(rootMidi + 4), pc(rootMidi + 7)]),
+  notes: [rootMidi, rootMidi + 4, rootMidi + 7],
+})
+const fromSong = (c: SongChord): PlayChord => ({
+  label: c.label,
+  roman: c.roman,
+  pcs: chordPcs(c),
+  notes: chordTriadMidi(c, BASE),
+})
+
+// Die gewertete Übung: I·IV·V in C-Dur, drei Stufen.
+const UEBUNG: Record<Stage, PlayChord[]> = {
+  langsam: [major(60, 'I'), major(67, 'V')],
+  mittel: [major(60, 'I'), major(65, 'IV'), major(67, 'V')],
+  flott: [major(60, 'I'), major(65, 'IV'), major(67, 'V'), major(60, 'I')],
+}
+
+// Modus: 'uebung' (gewertet) oder eine Song-ID aus der Bibliothek.
+type Mode = 'uebung' | string
 
 interface ActiveBar {
-  chord: Chord
+  chord: PlayChord
   downbeat: number
   pcs: Set<number>
   gripTime: number | null
@@ -77,7 +94,9 @@ interface StageStat {
 const freshStat = (): StageStat => ({ results: [], passed: false })
 
 interface Snapshot {
-  stage: Stage
+  mode: Mode
+  isSong: boolean
+  label: string // Stufen- bzw. Song-Schild
   acc: number
   samples: number
   passed: Record<Stage, boolean>
@@ -86,13 +105,17 @@ interface Snapshot {
 export default function BegleitGame({ onExit }: { onExit: () => void }) {
   const activeNotes = useSessionStore((s) => s.activeNotes)
 
+  const modeRef = useRef<Mode>('uebung')
   const statsRef = useRef<Record<Stage, StageStat>>({
     langsam: freshStat(),
     mittel: freshStat(),
     flott: freshStat(),
   })
+  const songResultsRef = useRef<boolean[]>([]) // ungewerteter Song-Loop (nur Quote)
   const stageRef = useRef<Stage>('langsam')
   const periodRef = useRef(60000 / STAGE_BPM.langsam)
+  const beatsRef = useRef(4) // Schläge pro Takt
+  const progRef = useRef<PlayChord[]>(UEBUNG.langsam)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const beatIdxRef = useRef(0)
   const barCountRef = useRef(-1)
@@ -100,23 +123,38 @@ export default function BegleitGame({ onExit }: { onExit: () => void }) {
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([])
 
   const [snap, setSnap] = useState<Snapshot>({
-    stage: 'langsam',
+    mode: 'uebung',
+    isSong: false,
+    label: STAGE_LABEL.langsam,
     acc: 0,
     samples: 0,
     passed: { langsam: false, mittel: false, flott: false },
   })
   const [running, setRunning] = useState(false)
   const [pulse, setPulse] = useState(-1)
-  const [cur, setCur] = useState<Chord>(I)
+  const [prog, setProg] = useState<PlayChord[]>(UEBUNG.langsam)
+  const [cur, setCur] = useState<PlayChord>(UEBUNG.langsam[0])
   const [feedback, setFeedback] = useState<{ kind: 'hit' | 'miss'; text: string } | null>(null)
 
+  const currentSong = () =>
+    modeRef.current === 'uebung' ? undefined : songById(modeRef.current)
+
   const refresh = useCallback(() => {
-    const s = stageRef.current
-    const st = statsRef.current[s]
-    const n = st.results.length
+    const isSong = modeRef.current !== 'uebung'
+    const results = isSong
+      ? songResultsRef.current
+      : statsRef.current[stageRef.current].results
+    const n = results.length
+    const song = currentSong()
     setSnap({
-      stage: s,
-      acc: n ? st.results.filter(Boolean).length / n : 0,
+      mode: modeRef.current,
+      isSong,
+      label: isSong
+        ? song
+          ? song.keyLabel
+          : 'Song'
+        : STAGE_LABEL[stageRef.current],
+      acc: n ? results.filter(Boolean).length / n : 0,
       samples: n,
       passed: {
         langsam: statsRef.current.langsam.passed,
@@ -140,9 +178,9 @@ export default function BegleitGame({ onExit }: { onExit: () => void }) {
     return n >= 12 && acc >= 0.7
   }
 
-  // Einen abgeschlossenen Takt auswerten: richtige Töne nah genug an der Eins?
-  // Gibt true zurück, wenn dabei das Metronom (wegen Stufenaufstieg) neu gestartet
-  // wurde — dann darf der aufrufende tick() nicht weiterlaufen.
+  // Einen abgeschlossenen Takt auswerten. Gibt true zurück, wenn dabei das
+  // Metronom (Stufenaufstieg) neu gestartet wurde — dann darf tick() nicht
+  // weiterlaufen.
   const evaluateBar = useCallback(
     (bar: ActiveBar): boolean => {
       const period = periodRef.current
@@ -150,7 +188,7 @@ export default function BegleitGame({ onExit }: { onExit: () => void }) {
       const offset = bar.gripTime !== null ? bar.gripTime - bar.downbeat : Infinity
       const inTime = correct && offset <= period * 0.7
       const ok = correct && inTime
-      const name = chordName(bar.chord.rootMidi)
+      const name = bar.chord.label
       if (!correct) {
         setFeedback({ kind: 'miss', text: `War: ${bar.chord.roman} = ${name}` })
       } else if (offset <= period * 0.3) {
@@ -161,12 +199,20 @@ export default function BegleitGame({ onExit }: { onExit: () => void }) {
         setFeedback({ kind: 'miss', text: `${name} — zu spät für die Eins` })
       }
 
+      // Song-Modus: nur Quote führen, nicht werten, nicht aufsteigen.
+      if (modeRef.current !== 'uebung') {
+        const r = songResultsRef.current
+        r.push(ok)
+        if (r.length > 20) r.shift()
+        refresh()
+        return false
+      }
+
       const s = stageRef.current
       const st = statsRef.current[s]
       st.results.push(ok)
       if (st.results.length > 20) st.results.shift()
 
-      // Aufstieg: Stufe geschafft → nächstes Tempo/Progression, frischer Loop.
       if (!st.passed && passedFor(st)) {
         st.passed = true
         const idx = STAGE_ORDER.indexOf(s)
@@ -174,8 +220,9 @@ export default function BegleitGame({ onExit }: { onExit: () => void }) {
           const next = STAGE_ORDER[idx + 1]
           stageRef.current = next
           periodRef.current = 60000 / STAGE_BPM[next]
+          progRef.current = UEBUNG[next]
+          setProg(UEBUNG[next])
           refresh()
-          // Metronom mit neuem Tempo neu aufsetzen.
           startRef.current()
           return true
         }
@@ -186,20 +233,17 @@ export default function BegleitGame({ onExit }: { onExit: () => void }) {
     [refresh],
   )
 
-  // forward-Ref auf startMetronome (wird in evaluateBar gebraucht).
   const startRef = useRef<() => void>(() => {})
 
   const tick = useCallback(() => {
     const now = performance.now()
-    const beat = beatIdxRef.current % 4
+    const beats = beatsRef.current
+    const beat = beatIdxRef.current % beats
     if (beat === 0) {
-      // Vorigen Takt abschließen und auswerten. Hat das einen Stufenaufstieg
-      // ausgelöst (Metronom neu gestartet), hier abbrechen — der neue Lauf hat
-      // den Takt schon gesetzt.
       if (activeBarRef.current && evaluateBar(activeBarRef.current)) return
       barCountRef.current += 1
-      const prog = PROGRESSION[stageRef.current]
-      const chord = prog[barCountRef.current % prog.length]
+      const p = progRef.current
+      const chord = p[barCountRef.current % p.length]
       activeBarRef.current = { chord, downbeat: now, pcs: new Set(), gripTime: null }
       setCur(chord)
       playClick(true)
@@ -229,21 +273,47 @@ export default function BegleitGame({ onExit }: { onExit: () => void }) {
     activeBarRef.current = null
     setFeedback(null)
     const run = () => tickRef.current()
-    run() // sofort die erste Eins
+    run()
     intervalRef.current = setInterval(run, periodRef.current)
     setRunning(true)
   }, [])
   startRef.current = startMetronome
 
-  // Eingabe sammeln (MIDI, Klick, Computertastatur) → in den aktuellen Takt.
+  // Modus wählen: Übung oder ein Song. Setzt Tempo/Takt/Progression neu.
+  const selectMode = useCallback(
+    (mode: Mode) => {
+      modeRef.current = mode
+      if (mode === 'uebung') {
+        statsRef.current = { langsam: freshStat(), mittel: freshStat(), flott: freshStat() }
+        stageRef.current = 'langsam'
+        periodRef.current = 60000 / STAGE_BPM.langsam
+        beatsRef.current = 4
+        progRef.current = UEBUNG.langsam
+        setProg(UEBUNG.langsam)
+      } else {
+        const song = songById(mode)
+        const chords = song ? song.progression.map(fromSong) : UEBUNG.langsam
+        songResultsRef.current = []
+        beatsRef.current = song ? song.meter : 4
+        // Ruhiges Übe-Tempo (Walzer etwas langsamer).
+        periodRef.current = 60000 / (beatsRef.current === 3 ? 60 : 72)
+        progRef.current = chords
+        setProg(chords)
+      }
+      startMetronome()
+      refresh()
+    },
+    [startMetronome, refresh],
+  )
+
+  // Eingabe sammeln → in den aktuellen Takt.
   useEffect(() => {
     const unsub = onNoteOn((midi, time) => {
       const bar = activeBarRef.current
       if (!bar || intervalRef.current === null) return
       bar.pcs.add(pc(midi))
       if (bar.gripTime === null) {
-        const target = triadPcs(bar.chord.rootMidi)
-        if ([...target].every((p) => bar.pcs.has(p))) bar.gripTime = time
+        if ([...bar.chord.pcs].every((p) => bar.pcs.has(p))) bar.gripTime = time
       }
     })
     return () => unsub()
@@ -259,26 +329,21 @@ export default function BegleitGame({ onExit }: { onExit: () => void }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Fortschritt fürs Lernziel ak2 festhalten (lokal, nur höchste Stufe).
+  // Fortschritt fürs Lernziel ak2 festhalten (nur in der gewerteten Übung).
   const recordLevel = useProgressStore((s) => s.recordLevel)
   useEffect(() => {
+    if (snap.isSong) return
     if (snap.passed.langsam) recordLevel('ak2', 'erreicht')
     if (snap.passed.mittel) recordLevel('ak2', 'verinnerlicht')
     if (snap.passed.flott) recordLevel('ak2', 'gemeistert')
   }, [snap, recordLevel])
 
-  const handleRestart = () => {
-    statsRef.current = { langsam: freshStat(), mittel: freshStat(), flott: freshStat() }
-    stageRef.current = 'langsam'
-    periodRef.current = 60000 / STAGE_BPM.langsam
-    startMetronome()
-    refresh()
-  }
+  const handleRestart = () => selectMode(modeRef.current)
 
-  const stage = snap.stage
-  const blind = stage !== 'langsam'
-  const targetNotes = triadNotes(cur.rootMidi)
-  const prog = PROGRESSION[stage]
+  const isSong = snap.isSong
+  // Im Song-Modus immer Zieltasten zeigen (Übe-Loop); in der Übung nur Stufe 1.
+  const lightsOn = isSong || stageRef.current === 'langsam'
+  const targetNotes = cur.notes
 
   const handleDown = (midi: number) => (e: React.PointerEvent) => {
     e.preventDefault()
@@ -295,6 +360,7 @@ export default function BegleitGame({ onExit }: { onExit: () => void }) {
   }
   const WHITE_W = 100 / whites.length
   const whitesBelow = (m: number) => whites.filter((w) => w < m).length
+  const beats = beatsRef.current
 
   return (
     <div className="flex w-full flex-col gap-4">
@@ -308,20 +374,55 @@ export default function BegleitGame({ onExit }: { onExit: () => void }) {
           ← Lernpfad
         </button>
         <h2 className="font-display text-3xl text-amber-soft">Begleit-Tapper</h2>
-        <div className="flex items-center gap-4 text-sm text-bone/60">
-          <span className="tabular-nums" title="Anteil richtig & im Takt dieser Stufe">
+        <div className="flex items-center gap-3 text-sm text-bone/60">
+          <span className="tabular-nums" title="Anteil richtig & im Takt">
             {snap.samples ? Math.round(snap.acc * 100) : 0}% im Takt
           </span>
-          <span className="rounded-full border border-bone/15 px-2.5 py-0.5" title="Aktuelle Stufe">
-            {STAGE_LABEL[stage]}
+          <span className="rounded-full border border-bone/15 px-2.5 py-0.5" title="Modus / Stufe">
+            {snap.label}
           </span>
         </div>
+      </div>
+
+      {/* Modus-Wahl: gewertete Übung oder echter Song */}
+      <div className="flex flex-wrap items-center justify-center gap-2 text-sm">
+        <button
+          type="button"
+          onClick={() => selectMode('uebung')}
+          className="ease-soft rounded-full border px-3 py-1 transition-colors"
+          style={{
+            borderColor: !isSong ? GOLD : 'rgba(239,230,214,0.14)',
+            color: !isSong ? '#f0d49a' : 'rgba(239,230,214,0.55)',
+            background: !isSong ? 'rgba(224,177,94,0.12)' : 'transparent',
+          }}
+        >
+          Übung · I·IV·V
+        </button>
+        <span className="mx-1 text-bone/25">·</span>
+        {SONGS.map((s) => {
+          const on = snap.mode === s.id
+          return (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => selectMode(s.id)}
+              className="ease-soft rounded-full border px-3 py-1 transition-colors"
+              style={{
+                borderColor: on ? '#7fa8c9' : 'rgba(239,230,214,0.14)',
+                color: on ? '#bcd6ea' : 'rgba(239,230,214,0.55)',
+                background: on ? 'rgba(127,168,201,0.12)' : 'transparent',
+              }}
+            >
+              {s.title}
+            </button>
+          )
+        })}
       </div>
 
       {/* Spielfeld */}
       <div className="relative mx-auto w-full max-w-3xl rounded-xl bg-ink-800/40 p-3 ring-1 ring-black/40 sm:p-4">
         {/* Akkordfolge — aktueller Akkord hervorgehoben */}
-        <div className="mb-1 flex items-center justify-center gap-2">
+        <div className="mb-1 flex flex-wrap items-center justify-center gap-2">
           {prog.map((c, i) => {
             const active = c === cur
             return (
@@ -340,15 +441,15 @@ export default function BegleitGame({ onExit }: { onExit: () => void }) {
                 >
                   {c.roman}
                 </span>
-                <span className="text-[11px] text-bone/45">{chordName(c.rootMidi)}</span>
+                <span className="text-[11px] text-bone/45">{c.label}</span>
               </span>
             )
           })}
         </div>
 
-        {/* Puls-Punkte */}
+        {/* Puls-Punkte (so viele wie Schläge pro Takt) */}
         <div className="mb-1 flex items-center justify-center gap-3 py-1">
-          {[0, 1, 2, 3].map((b) => {
+          {Array.from({ length: beats }).map((_, b) => {
             const on = pulse === b
             return (
               <span
@@ -385,7 +486,7 @@ export default function BegleitGame({ onExit }: { onExit: () => void }) {
         >
           {whites.map((m, wi) => {
             const active = activeNotes.has(m)
-            const mark = !blind && targetNotes.includes(m)
+            const mark = lightsOn && targetNotes.includes(m)
             return (
               <button
                 key={m}
@@ -417,7 +518,7 @@ export default function BegleitGame({ onExit }: { onExit: () => void }) {
                     style={{ background: GOLD, boxShadow: '0 0 8px rgba(224,177,94,0.85)' }}
                   />
                 )}
-                {!blind && (
+                {lightsOn && (
                   <span className="pointer-events-none text-sm font-medium text-ink-700/60">
                     {midiToName(m)}
                   </span>
@@ -428,7 +529,7 @@ export default function BegleitGame({ onExit }: { onExit: () => void }) {
           {blacks.map((m) => {
             const left = whitesBelow(m) * WHITE_W - (WHITE_W * 0.62) / 2
             const active = activeNotes.has(m)
-            const mark = !blind && targetNotes.includes(m)
+            const mark = lightsOn && targetNotes.includes(m)
             return (
               <button
                 key={m}
@@ -476,31 +577,38 @@ export default function BegleitGame({ onExit }: { onExit: () => void }) {
         </div>
       </div>
 
-      {/* Skala */}
+      {/* Skala (nur in der gewerteten Übung) bzw. Song-Hinweis */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-2 text-sm">
-          {(
-            [
-              ['erreicht', snap.passed.langsam, 'Langsam I–V: zwei Akkorde im Takt gewechselt (mit Stütze)'],
-              ['verinnerlicht', snap.passed.mittel, 'Mittel I–IV–V: drei Akkorde blind im Puls begleitet'],
-              ['gemeistert', snap.passed.flott, 'Flott I–IV–V–I: voller Loop im Songtempo = Checkpoint erfüllt'],
-            ] as const
-          ).map(([label, on, hint]) => (
-            <span
-              key={label}
-              title={hint}
-              className="ease-soft rounded-full border px-4 py-1.5 transition-colors"
-              style={{
-                borderColor: on ? HIT : 'rgba(239,230,214,0.14)',
-                color: on ? HIT : 'rgba(239,230,214,0.45)',
-                background: on ? 'rgba(155,184,138,0.10)' : 'transparent',
-              }}
-            >
-              {on ? '✓ ' : ''}
-              {label}
-            </span>
-          ))}
-        </div>
+        {isSong ? (
+          <p className="text-sm text-bone/45">
+            Übe-Loop — kein Fortschritt gewertet.{' '}
+            {currentSong()?.note ?? 'Begleite den Song frei mit.'}
+          </p>
+        ) : (
+          <div className="flex flex-wrap gap-2 text-sm">
+            {(
+              [
+                ['erreicht', snap.passed.langsam, 'Langsam I–V: zwei Akkorde im Takt gewechselt (mit Stütze)'],
+                ['verinnerlicht', snap.passed.mittel, 'Mittel I–IV–V: drei Akkorde blind im Puls begleitet'],
+                ['gemeistert', snap.passed.flott, 'Flott I–IV–V–I: voller Loop im Songtempo = Checkpoint erfüllt'],
+              ] as const
+            ).map(([label, on, hint]) => (
+              <span
+                key={label}
+                title={hint}
+                className="ease-soft rounded-full border px-4 py-1.5 transition-colors"
+                style={{
+                  borderColor: on ? HIT : 'rgba(239,230,214,0.14)',
+                  color: on ? HIT : 'rgba(239,230,214,0.45)',
+                  background: on ? 'rgba(155,184,138,0.10)' : 'transparent',
+                }}
+              >
+                {on ? '✓ ' : ''}
+                {label}
+              </span>
+            ))}
+          </div>
+        )}
         <button
           type="button"
           onClick={handleRestart}
@@ -512,8 +620,9 @@ export default function BegleitGame({ onExit }: { onExit: () => void }) {
 
       <p className="text-center text-sm text-bone/45">
         Pro Takt ein Akkord — greif ihn auf die <span className="text-bone/70">Eins</span> und
-        wechsle rechtzeitig zum nächsten. Die Töne dürfen in jeder Lage liegen. Es wird
-        schneller und voller, je sicherer du wirst. Kein Zeitdruck im Sinne von Punkten.
+        wechsle rechtzeitig zum nächsten. Die Töne dürfen in jeder Lage liegen. In der Übung
+        wird es schneller und voller, je sicherer du wirst; im Song begleitest du frei mit.
+        Kein Zeitdruck im Sinne von Punkten.
       </p>
     </div>
   )

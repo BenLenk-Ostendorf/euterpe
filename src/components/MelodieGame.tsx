@@ -59,6 +59,7 @@ const SONGS: Record<Stage, Song[]> = {
   lang: [
     { name: 'Ode an die Freude', pcs: [4, 4, 5, 7, 7, 5, 4, 2] },
     { name: 'Alle meine Entchen', pcs: [0, 2, 4, 5, 7, 7, 9, 9] },
+    { name: 'Song of Storms', pcs: [2, 9, 2, 2, 9, 2, 4, 5, 4, 5, 4, 0, 9, 9] },
   ],
 }
 

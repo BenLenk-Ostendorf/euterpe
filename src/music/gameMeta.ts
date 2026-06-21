@@ -195,10 +195,10 @@ export const GAME_META: Record<ChallengeId, GameMeta> = {
       'Steigende Stufen (langsam/2 Akkorde → schneller/mehr Akkorde) staffeln Tempo- UND Wechsel-Last, sodass der Engpass „rechtzeitiger Wechsel" graduell wächst.',
     ],
     mechanic:
-      'Ein Metronom läuft im 4/4; pro Takt ein Akkord der Folge (oben angezeigt, aktueller hervorgehoben). Auf die Eins greifst du den Akkord. Gemessen wird, ob die richtigen Töne (Lage egal) nah genug an der Eins liegen. Stufen: langsam I–V mit leuchtenden Zieltasten → I–IV–V blind → flott I–IV–V–I. Feedback: im Takt / etwas spät / falsch.',
+      'Ein Metronom läuft; pro Takt ein Akkord der Folge (oben angezeigt, aktueller hervorgehoben). Auf die Eins greifst du den Akkord. Gemessen wird, ob die richtigen Töne (Lage egal) nah genug an der Eins liegen. ZWEI MODI: (1) gewertete Übung I·IV·V — langsam I–V mit Zieltasten → I–IV–V blind → flott I–IV–V–I (setzt den Checkpoint ak2). (2) Song — eine echte Akkordfolge aus der Bibliothek (z. B. Song of Storms: i–iv–V in d-Moll, 3/4) als ruhiger, ungewerteter Übe-Loop mit Zieltasten. Feedback: im Takt / etwas spät / falsch.',
     devices: ['klavier', 'pc', 'handy'],
     deviceNote:
-      'Am MIDI-Klavier am wertvollsten (echtes Greifen im Tempo); per Maus nur ein Ton pro Klick — Akkorde im Puls sind so schwer zu schaffen.',
+      'Am MIDI-Klavier am wertvollsten (echtes Greifen im Tempo); per Maus nur ein Ton pro Klick — Akkorde im Puls sind so schwer zu schaffen. Der Song-Modus koppelt das Gelernte direkt an ein echtes Stück.',
   },
 
   variation: {
