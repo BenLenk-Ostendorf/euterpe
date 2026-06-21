@@ -12,6 +12,7 @@ export type ChallengeId =
   | 'durmoll'
   | 'intervalle'
   | 'wechsel'
+  | 'pulstap'
   | 'akkordgriff'
   | 'notenregen'
 
@@ -21,6 +22,7 @@ export const CHALLENGE_LABEL: Record<ChallengeId, string> = {
   durmoll: 'Dur/Moll-Ohr',
   intervalle: 'Intervall-Ohr',
   wechsel: 'Wechsel-Ohr',
+  pulstap: 'Puls-Tapper',
   akkordgriff: 'Akkordgriff',
   notenregen: 'Notenregen',
 }
@@ -203,6 +205,16 @@ export const NODES: PathNode[] = [
   },
 
   // ── Koordination (nebenher) ────────────────────────────────────────────
+  {
+    id: 'kp',
+    strand: 'koord',
+    label: 'Puls fühlen',
+    tag: 'Puls-Tapper',
+    detail:
+      'Auf den Schlag tippen, im gleichmäßigen 4/4. Der innere Puls ist das Fundament jeder Begleitung — sitzt er, fällt alles andere leichter. Stufen: 70 → 100 → 132 BPM.',
+    challenge: 'pulstap',
+    progressId: 'pt',
+  },
   {
     id: 'k0',
     strand: 'koord',
