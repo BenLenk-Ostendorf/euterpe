@@ -28,6 +28,7 @@ import GrundtonGame from './components/GrundtonGame'
 import PulsGame from './components/PulsGame'
 import AkkordgriffGame from './components/AkkordgriffGame'
 import StufenGriffGame from './components/StufenGriffGame'
+import BegleitGame from './components/BegleitGame'
 import type { ChallengeId } from './music/learningPath'
 
 // Der Lernpfad (Tree) ist die Hauptseite. Von dort lassen sich Modi
@@ -144,6 +145,8 @@ export default function App() {
           <AkkordgriffGame onExit={() => setOverlay(null)} />
         ) : overlay === 'stufengriff' ? (
           <StufenGriffGame onExit={() => setOverlay(null)} />
+        ) : overlay === 'begleit' ? (
+          <BegleitGame onExit={() => setOverlay(null)} />
         ) : overlay === 'notenregen' ? (
           <NotenregenGame onExit={() => setOverlay(null)} />
         ) : overlay === 'free' ? (

@@ -170,6 +170,21 @@ export const GAME_META: Record<ChallengeId, GameMeta> = {
       'Am MIDI-Klavier am wertvollsten (echtes Greifen mit der Hand); per Maus nur Ton für Ton, am Handy per Multitouch eingeschränkt.',
   },
 
+  begleit: {
+    skill: 'Akkorde im 4/4-Puls greifen und rechtzeitig zur nächsten Stufe wechseln (I·IV·V begleiten).',
+    assumptions: [
+      'Akkorde im Puls zu wechseln ist die eigentliche Pareto-Fähigkeit — wer es kann, begleitet sofort echte Lieder (80 % Spaß mit 20 % der Fertigkeiten).',
+      'Koppelt zwei bereits einzeln trainierte Skills (Dreiklang-Griff + Puls) — der schwere Schritt ist die Gleichzeitigkeit, genau die wird hier isoliert geübt.',
+      'Ein durchlaufendes Metronom erzwingt echtes WEITERSPIELEN statt Anhalten-und-Suchen — das Spiel wartet nicht, wie eine echte Begleitsituation.',
+      'Steigende Stufen (langsam/2 Akkorde → schneller/mehr Akkorde) staffeln Tempo- UND Wechsel-Last, sodass der Engpass „rechtzeitiger Wechsel" graduell wächst.',
+    ],
+    mechanic:
+      'Ein Metronom läuft im 4/4; pro Takt ein Akkord der Folge (oben angezeigt, aktueller hervorgehoben). Auf die Eins greifst du den Akkord. Gemessen wird, ob die richtigen Töne (Lage egal) nah genug an der Eins liegen. Stufen: langsam I–V mit leuchtenden Zieltasten → I–IV–V blind → flott I–IV–V–I. Feedback: im Takt / etwas spät / falsch.',
+    devices: ['klavier', 'pc', 'handy'],
+    deviceNote:
+      'Am MIDI-Klavier am wertvollsten (echtes Greifen im Tempo); per Maus nur ein Ton pro Klick — Akkorde im Puls sind so schwer zu schaffen.',
+  },
+
   notenregen: {
     skill: 'Eine fallende Note rechtzeitig auf der richtigen Taste treffen (Reaktions-/Spaß-Spiel).',
     assumptions: [

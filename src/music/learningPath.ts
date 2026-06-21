@@ -16,6 +16,7 @@ export type ChallengeId =
   | 'pulstap'
   | 'akkordgriff'
   | 'stufengriff'
+  | 'begleit'
   | 'notenregen'
 
 export const CHALLENGE_LABEL: Record<ChallengeId, string> = {
@@ -28,6 +29,7 @@ export const CHALLENGE_LABEL: Record<ChallengeId, string> = {
   pulstap: 'Puls-Tapper',
   akkordgriff: 'Akkordgriff',
   stufengriff: 'Stufen-Greifer',
+  begleit: 'Begleit-Tapper',
   notenregen: 'Notenregen',
 }
 
@@ -209,7 +211,9 @@ export const NODES: PathNode[] = [
     label: 'Im 4/4 begleiten',
     tag: 'auf 1-2-3-4',
     detail:
-      'Den Akkord im gleichmäßigen Puls anschlagen und rechtzeitig zum nächsten wechseln. Schlicht 1-2-3-4 reicht — das klingt schon nach Begleitung.',
+      'Den Akkord im gleichmäßigen Puls anschlagen und rechtzeitig zum nächsten wechseln. Schlicht 1-2-3-4 reicht — das klingt schon nach Begleitung. Stufen: langsam I–V → I–IV–V → flott I–IV–V–I.',
+    challenge: 'begleit',
+    progressId: 'ak2',
   },
 
   // ── Koordination (nebenher) ────────────────────────────────────────────
@@ -272,7 +276,9 @@ export const SMALL_GOALS: SmallGoal[] = [
     strand: 'akkorde',
     label: 'Kadenz-Loop (3 Akkorde)',
     detail:
-      'I–IV–V als Schleife flüssig spielen — das Skelett tausender Songs, klingt augenblicklich nach echtem Stück. (Noch zu bauen.)',
+      'I–IV–V als Schleife flüssig spielen — das Skelett tausender Songs, klingt augenblicklich nach echtem Stück. Spielbar im Begleit-Tapper (▶).',
+    challenge: 'begleit',
+    ready: true,
   },
 ]
 
