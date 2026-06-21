@@ -339,7 +339,7 @@ export default function NotenregenGame({ onExit }: { onExit: () => void }) {
           ← Lernpfad
         </button>
         <h2 className="font-display text-3xl text-amber-soft">Notenregen</h2>
-        <div className="flex items-center gap-5 text-sm text-bone/60">
+        <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 text-sm text-bone/60">
           <span
             className="flex items-center gap-1"
             title="Fluss: letzte 10 Anschläge"
