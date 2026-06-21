@@ -92,6 +92,27 @@ export const SONGS: Song[] = [
     leftHand: [60, 60, 67, 67], // C C G G
     progression: [dur('C-Dur', 'I', 0), dur('G-Dur', 'V', 7)],
   },
+  {
+    id: 'haenschen',
+    title: 'Hänschen klein',
+    keyLabel: 'C-Dur · 4/4',
+    meter: 4,
+    // G E E | F D D | C D E F G G G
+    melody: [67, 64, 64, 65, 62, 62, 60, 62, 64, 65, 67, 67, 67],
+    leftHand: [60, 60, 67, 60], // C C G C
+    progression: [dur('C-Dur', 'I', 0), dur('G-Dur', 'V', 7)],
+  },
+  {
+    id: 'bruder-jakob',
+    title: 'Bruder Jakob',
+    keyLabel: 'C-Dur · 4/4',
+    meter: 4,
+    // C D E C | C D E C | E F G | E F G  (Kanon über der Tonika)
+    melody: [60, 62, 64, 60, 60, 62, 64, 60, 64, 65, 67, 64, 65, 67],
+    leftHand: [60, 60, 60, 60], // durchgehend C (Tonika-Bordun)
+    progression: [dur('C-Dur', 'I', 0)],
+    note: 'Kanon über der Tonika — ein Akkord (C-Dur) trägt das ganze Stück. Gut, um den Puls auf einem Bordun ruhig zu halten.',
+  },
 ]
 
 export const songById = (id: string): Song | undefined =>
