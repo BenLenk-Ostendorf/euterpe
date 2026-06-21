@@ -141,6 +141,21 @@ export const GAME_META: Record<ChallengeId, GameMeta> = {
       'Das „als ein Griff"-Messen braucht ein MIDI-Keyboard; per Maus geht nur einzeln, am Handy per Multitouch eingeschränkt.',
   },
 
+  stufengriff: {
+    skill: 'Die drei Hauptakkorde (I · IV · V) einer Tonart finden und als Dur-Dreiklang greifen.',
+    assumptions: [
+      'I/IV/V sind das harmonische Skelett tausender Lieder — wer sie blind greift, kann fast alles begleiten (Pareto-Ziel).',
+      'Die Funktion (Tonika/Subdominante/Dominante) statt des Akkordnamens anzusagen erzwingt das Stufen-DENKEN, nicht das Auswendiglernen einzelner Akkorde.',
+      'Aufbau auf dem Akkordgriff (Treffer über Tonklassen): die Greif-Mechanik ist schon verinnerlicht, hier kommt nur die Stufen-Zuordnung dazu — eine Achse pro Spiel.',
+      'Der Wechsel der Tonart in Stufe 3 prüft, ob die Relation (I→+5→+7) verstanden ist oder nur drei C-Dur-Griffe auswendig sitzen — macht den Skill transponierbar.',
+    ],
+    mechanic:
+      'Eine Funktion wird angesagt — Tonika (I), Subdominante (IV), Dominante (V) — du greifst den passenden Dur-Dreiklang (Lage/Umkehrung egal). Stufen: mit Stütze (Zieltasten leuchten) in C-Dur → blind in C-Dur → wechselnde Tonarten (C/G/D/F/A) blind. Feedback nennt den richtigen Akkord, spielt ihn bei Fehlern vor.',
+    devices: ['klavier', 'pc', 'handy'],
+    deviceNote:
+      'Am MIDI-Klavier am wertvollsten (echtes Greifen mit der Hand); per Maus nur Ton für Ton, am Handy per Multitouch eingeschränkt.',
+  },
+
   notenregen: {
     skill: 'Eine fallende Note rechtzeitig auf der richtigen Taste treffen (Reaktions-/Spaß-Spiel).',
     assumptions: [

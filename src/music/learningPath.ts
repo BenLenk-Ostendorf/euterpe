@@ -14,6 +14,7 @@ export type ChallengeId =
   | 'wechsel'
   | 'pulstap'
   | 'akkordgriff'
+  | 'stufengriff'
   | 'notenregen'
 
 export const CHALLENGE_LABEL: Record<ChallengeId, string> = {
@@ -24,6 +25,7 @@ export const CHALLENGE_LABEL: Record<ChallengeId, string> = {
   wechsel: 'Wechsel-Ohr',
   pulstap: 'Puls-Tapper',
   akkordgriff: 'Akkordgriff',
+  stufengriff: 'Stufen-Greifer',
   notenregen: 'Notenregen',
 }
 
@@ -193,7 +195,9 @@ export const NODES: PathNode[] = [
     label: 'I · IV · V',
     tag: 'Hauptakkorde',
     detail:
-      'Tonika, Subdominante, Dominante — die drei Hauptakkorde einer Tonart. Damit lassen sich erstaunlich viele Lieder begleiten.',
+      'Tonika, Subdominante, Dominante — die drei Hauptakkorde einer Tonart. Damit lassen sich erstaunlich viele Lieder begleiten. Stufen: mit Stütze in C-Dur → blind → wechselnde Tonarten.',
+    challenge: 'stufengriff',
+    progressId: 'ak1',
   },
   {
     id: 'ak2',

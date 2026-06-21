@@ -26,6 +26,7 @@ import IntervallGame from './components/IntervallGame'
 import WechselGame from './components/WechselGame'
 import PulsGame from './components/PulsGame'
 import AkkordgriffGame from './components/AkkordgriffGame'
+import StufenGriffGame from './components/StufenGriffGame'
 import type { ChallengeId } from './music/learningPath'
 
 // Der Lernpfad (Tree) ist die Hauptseite. Von dort lassen sich Modi
@@ -138,6 +139,8 @@ export default function App() {
           <PulsGame onExit={() => setOverlay(null)} />
         ) : overlay === 'akkordgriff' ? (
           <AkkordgriffGame onExit={() => setOverlay(null)} />
+        ) : overlay === 'stufengriff' ? (
+          <StufenGriffGame onExit={() => setOverlay(null)} />
         ) : overlay === 'notenregen' ? (
           <NotenregenGame onExit={() => setOverlay(null)} />
         ) : overlay === 'free' ? (
