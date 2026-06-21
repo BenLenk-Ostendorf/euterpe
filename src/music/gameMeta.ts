@@ -216,6 +216,22 @@ export const GAME_META: Record<ChallengeId, GameMeta> = {
       'Am MIDI-Klavier am echtesten; per Maus/Touch über die Bildschirm-Klaviatur ebenso spielbar.',
   },
 
+  stueck: {
+    skill: 'Eine Hand eines echten Stücks sicher und „fast ohne Hinsehen" spielen (Automatisieren).',
+    assumptions: [
+      'Automatisieren EINER Hand ist die Voraussetzung dafür, dass der Kopf für die andere Hand frei wird — der eigentliche Engpass beim zweihändigen Spielen.',
+      'Geführtes Mitspielen an einem echten, bekannten Song motiviert stärker als abstrakte Fingerübungen und überträgt sich direkt aufs Ziel (ein Stück spielen).',
+      'Die Stufung mit Leuchten → ohne Leuchten → im Fluss bildet „Automatisieren" sauber ab: erst Hilfe, dann Gedächtnis, dann Geläufigkeit — eine Achse nach der anderen.',
+      'Selbstbestimmtes Tempo (kein Metronom-Zwang) hält den Fokus auf Sicherheit statt auf Hetze; Fluss wird nur als „stockt es noch?" rückgemeldet, nicht als Punktzahl.',
+      'Treffer über Tonklassen (Oktave egal) und „falsch wartet auf richtig" sorgen dafür, dass die Phrase immer korrekt zu Ende läuft — es wird der richtige Bewegungsablauf eingeschliffen, kein Fehler eingeübt.',
+    ],
+    mechanic:
+      'Du wählst Song (z. B. Song of Storms) und Hand (rechts = Melodie, links = Begleitung). Eine Pip-Reihe zeigt die Phrase. Stufe 1: die nächste Taste leuchtet, du spielst sie nach. Stufe 2: ohne Leuchten, aus dem Gedächtnis. Stufe 3: ohne Leuchten und ohne langes Stocken („im Fluss"). Falscher Ton informiert (rot) und wartet auf den richtigen. „Vorspielen" und „Durchlauf neu" jederzeit.',
+    devices: ['klavier', 'pc', 'handy'],
+    deviceNote:
+      'Am MIDI-Klavier am wertvollsten (echtes Einschleifen der Handbewegung); per Maus/Touch über die Bildschirm-Klaviatur ebenso übbar.',
+  },
+
   notenregen: {
     skill: 'Eine fallende Note rechtzeitig auf der richtigen Taste treffen (Reaktions-/Spaß-Spiel).',
     assumptions: [

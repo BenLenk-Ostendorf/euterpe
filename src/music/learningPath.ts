@@ -19,6 +19,7 @@ export type ChallengeId =
   | 'stufengriff'
   | 'begleit'
   | 'variation'
+  | 'stueck'
   | 'notenregen'
 
 export const CHALLENGE_LABEL: Record<ChallengeId, string> = {
@@ -34,6 +35,7 @@ export const CHALLENGE_LABEL: Record<ChallengeId, string> = {
   stufengriff: 'Stufen-Greifer',
   begleit: 'Begleit-Tapper',
   variation: 'Motiv-Variieren',
+  stueck: 'Stück-Trainer',
   notenregen: 'Notenregen',
 }
 
@@ -238,9 +240,11 @@ export const NODES: PathNode[] = [
     id: 'k0',
     strand: 'koord',
     label: 'Eine Hand sicher',
-    tag: 'automatisieren',
+    tag: 'Stück-Trainer',
     detail:
-      'Erst läuft jede Hand für sich, fast ohne Hinsehen. Dann hat der Kopf frei für die andere.',
+      'Erst läuft jede Hand für sich, fast ohne Hinsehen. Dann hat der Kopf frei für die andere. Geführtes Üben an echten Songs: mit Leuchten → ohne Leuchten → im Fluss.',
+    challenge: 'stueck',
+    progressId: 'k0',
   },
   {
     id: 'k1',

@@ -31,6 +31,7 @@ import AkkordgriffGame from './components/AkkordgriffGame'
 import StufenGriffGame from './components/StufenGriffGame'
 import BegleitGame from './components/BegleitGame'
 import VariationGame from './components/VariationGame'
+import StueckTrainerGame from './components/StueckTrainerGame'
 import type { ChallengeId } from './music/learningPath'
 
 // Der Lernpfad (Tree) ist die Hauptseite. Von dort lassen sich Modi
@@ -153,6 +154,8 @@ export default function App() {
           <BegleitGame onExit={() => setOverlay(null)} />
         ) : overlay === 'variation' ? (
           <VariationGame onExit={() => setOverlay(null)} />
+        ) : overlay === 'stueck' ? (
+          <StueckTrainerGame onExit={() => setOverlay(null)} />
         ) : overlay === 'notenregen' ? (
           <NotenregenGame onExit={() => setOverlay(null)} />
         ) : overlay === 'free' ? (
