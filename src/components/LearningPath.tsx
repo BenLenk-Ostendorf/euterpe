@@ -13,6 +13,7 @@ import {
   type PathNode,
   type SmallGoal,
 } from '../music/learningPath'
+import { GAME_META, DEVICE_LABEL, DEVICE_ICON } from '../music/gameMeta'
 import { useProgressStore, type SkillLevel } from '../state/progressStore'
 
 // Farbe der Umrandung nach Fortschritt (nur für Knoten mit progressId).
@@ -28,6 +29,8 @@ interface Detail {
   label: string
   detail: string
   color: string
+  /** Wenn gesetzt: die didaktischen Meta-Daten dieses Spiels mit anzeigen. */
+  challenge?: ChallengeId
 }
 
 export default function LearningPath({
@@ -249,6 +252,62 @@ export default function LearningPath({
               {selected.label}
             </h3>
             <p className="text-sm leading-relaxed text-bone/75">{selected.detail}</p>
+
+            {/* Didaktische Meta-Daten (nur bei Spielen) */}
+            {selected.challenge && (() => {
+              const meta = GAME_META[selected.challenge!]
+              return (
+                <div className="mt-2 flex flex-col gap-3 border-t border-bone/10 pt-3 text-sm">
+                  <div>
+                    <span className="text-xs uppercase tracking-wider text-bone/40">
+                      Trainierter Skill
+                    </span>
+                    <p className="text-bone/80">{meta.skill}</p>
+                  </div>
+
+                  <div>
+                    <span className="text-xs uppercase tracking-wider text-bone/40">
+                      Geräte
+                    </span>
+                    <div className="mt-1 flex flex-wrap gap-1.5">
+                      {meta.devices.map((d) => (
+                        <span
+                          key={d}
+                          className="inline-flex items-center gap-1 rounded-full border border-bone/15 px-2.5 py-0.5 text-[12px] text-bone/70"
+                        >
+                          <span aria-hidden>{DEVICE_ICON[d]}</span>
+                          {DEVICE_LABEL[d]}
+                        </span>
+                      ))}
+                    </div>
+                    {meta.deviceNote && (
+                      <p className="mt-1 text-[12px] text-bone/45">{meta.deviceNote}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <span className="text-xs uppercase tracking-wider text-bone/40">
+                      Mechanik — wie der Skill trainiert wird
+                    </span>
+                    <p className="text-bone/75">{meta.mechanic}</p>
+                  </div>
+
+                  <div>
+                    <span className="text-xs uppercase tracking-wider text-bone/40">
+                      Annahmen (warum effizientes Training)
+                    </span>
+                    <ul className="mt-1 flex flex-col gap-1 text-bone/75">
+                      {meta.assumptions.map((a, i) => (
+                        <li key={i} className="flex gap-2">
+                          <span aria-hidden className="text-amber-soft/60">·</span>
+                          <span>{a}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )
+            })()}
           </div>
         ) : (
           <p className="text-sm text-bone/40">
@@ -265,30 +324,66 @@ export default function LearningPath({
             Übungen zum Mitspielen
           </p>
           <div className="flex flex-wrap gap-2">
-            {NODES.filter((n) => n.challenge).map((n) => (
-              <button
-                key={n.id}
-                type="button"
-                onClick={() => onStartChallenge(n.challenge!)}
-                className="ease-soft flex items-center gap-2 rounded-full border border-amber-glow/40 bg-ink-700/60 px-4 py-1.5 text-sm text-amber-soft transition-all hover:border-amber-glow hover:bg-ink-600"
-              >
-                <span aria-hidden>▶</span>
-                <span className="font-medium">{CHALLENGE_LABEL[n.challenge!]}</span>
-                <span className="text-bone/45">— {n.label}</span>
-              </button>
-            ))}
-            {STANDALONE_CHALLENGES.map((id) => (
-              <button
-                key={id}
-                type="button"
-                onClick={() => onStartChallenge(id)}
-                className="ease-soft flex items-center gap-2 rounded-full border border-bone/15 bg-ink-700/40 px-4 py-1.5 text-sm text-bone/70 transition-all hover:border-amber-glow/50 hover:text-amber-soft"
-              >
-                <span aria-hidden>▶</span>
-                <span className="font-medium">{CHALLENGE_LABEL[id]}</span>
-                <span className="text-bone/40">— Artefakt, noch keinem Strang zugeordnet</span>
-              </button>
-            ))}
+            {[
+              ...NODES.filter((n) => n.challenge).map((n) => ({
+                id: n.challenge!,
+                sub: n.label,
+                standalone: false,
+              })),
+              ...STANDALONE_CHALLENGES.map((id) => ({
+                id,
+                sub: 'Artefakt, noch keinem Strang zugeordnet',
+                standalone: true,
+              })),
+            ].map(({ id, sub, standalone }) => {
+              const meta = GAME_META[id]
+              return (
+                <div
+                  key={id}
+                  className="flex items-center gap-1 rounded-full border bg-ink-700/50 pl-1 pr-1"
+                  style={{
+                    borderColor: standalone
+                      ? 'rgba(239,230,214,0.15)'
+                      : 'rgba(224,177,94,0.4)',
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => onStartChallenge(id)}
+                    className="ease-soft flex items-center gap-2 rounded-full px-3 py-1.5 text-sm transition-colors hover:text-amber-soft"
+                    style={{ color: standalone ? 'rgba(239,230,214,0.7)' : '#f0d49a' }}
+                  >
+                    <span aria-hidden>▶</span>
+                    <span className="font-medium">{CHALLENGE_LABEL[id]}</span>
+                    <span className="text-bone/40">— {sub}</span>
+                  </button>
+                  {/* Geräte-Icons als Schnell-Hinweis */}
+                  <span className="flex items-center gap-0.5 text-[13px]" title="Geräte">
+                    {meta.devices.map((d) => (
+                      <span key={d} aria-hidden title={DEVICE_LABEL[d]}>
+                        {DEVICE_ICON[d]}
+                      </span>
+                    ))}
+                  </span>
+                  {/* Meta-Daten ins Detailpanel laden */}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSelected({
+                        label: CHALLENGE_LABEL[id],
+                        detail: sub,
+                        color: '#e0b15e',
+                        challenge: id,
+                      })
+                    }
+                    title="Meta-Daten: Skill, Annahmen, Mechanik"
+                    className="ease-soft flex h-6 w-6 items-center justify-center rounded-full border border-bone/15 text-xs text-bone/55 transition-colors hover:border-amber-glow/50 hover:text-amber-soft"
+                  >
+                    ℹ
+                  </button>
+                </div>
+              )
+            })}
           </div>
         </div>
       )}
