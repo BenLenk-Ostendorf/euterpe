@@ -294,7 +294,7 @@ export default function StueckTrainerGame({ onExit }: { onExit: () => void }) {
       </div>
 
       {/* Song- und Hand-Wahl */}
-      <div className="flex flex-wrap items-center justify-center gap-2 text-sm">
+      <div className="lq-hide flex flex-wrap items-center justify-center gap-2 text-sm">
         {SONGS.map((s) => {
           const on = s.id === song.id
           return (
@@ -337,7 +337,7 @@ export default function StueckTrainerGame({ onExit }: { onExit: () => void }) {
       {/* Spielfeld */}
       <div className="relative mx-auto w-full max-w-3xl rounded-xl bg-ink-800/40 p-3 ring-1 ring-black/40 sm:p-4">
         <div className="mb-2 flex flex-col items-center gap-3 py-2">
-          <span className="text-sm text-bone/50">
+          <span className="lq-hide text-sm text-bone/50">
             {song.title} · {song.keyLabel}
           </span>
 
@@ -487,7 +487,7 @@ export default function StueckTrainerGame({ onExit }: { onExit: () => void }) {
       </div>
 
       {/* Skala */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="lq-hide flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2 text-sm">
           {(
             [
@@ -520,7 +520,7 @@ export default function StueckTrainerGame({ onExit }: { onExit: () => void }) {
         </button>
       </div>
 
-      <p className="text-center text-sm text-bone/45">
+      <p className="lq-hide text-center text-sm text-bone/45">
         Erst mit leuchtender Führung, dann aus dem Gedächtnis, dann flüssig — eine
         Hand sicher, „fast ohne Hinsehen". Spiel die Phrase so oft durch, wie du
         magst. Töne dürfen in jeder Oktave liegen. Kein Zeitdruck, keine Punkte.

@@ -286,7 +286,7 @@ export default function IntervallGame({ onExit }: { onExit: () => void }) {
       </div>
 
       {/* Skala */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="lq-hide flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2 text-sm">
           {(
             [
@@ -319,7 +319,7 @@ export default function IntervallGame({ onExit }: { onExit: () => void }) {
         </button>
       </div>
 
-      <p className="text-center text-sm text-bone/45">
+      <p className="lq-hide text-center text-sm text-bone/45">
         Erst hören, dann zuordnen — die Anker-Lieder helfen beim Einprägen. Die Auswahl
         wächst, je sicherer du wirst. Kein Zeitdruck, keine Punkte.
       </p>

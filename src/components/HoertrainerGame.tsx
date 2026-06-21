@@ -572,7 +572,7 @@ export default function HoertrainerGame({ onExit }: { onExit: () => void }) {
       </div>
 
       {/* Skala: erreicht / verinnerlicht / gemeistert */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="lq-hide flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2 text-sm">
           {(
             [
@@ -604,7 +604,7 @@ export default function HoertrainerGame({ onExit }: { onExit: () => void }) {
         </button>
       </div>
 
-      <p className="text-center text-sm text-bone/45">
+      <p className="lq-hide text-center text-sm text-bone/45">
         Erst hören, dann antworten — die Schritte werden kleiner, je sicherer du
         wirst. Es zählt das Hören bei den feinen Schritten, nicht die offensichtliche
         Oktave. Kein Zeitdruck, keine Punkte.

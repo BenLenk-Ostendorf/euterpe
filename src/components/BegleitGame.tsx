@@ -386,7 +386,7 @@ export default function BegleitGame({ onExit }: { onExit: () => void }) {
       </div>
 
       {/* Modus-Wahl: gewertete Übung oder echter Song */}
-      <div className="flex flex-wrap items-center justify-center gap-2 text-sm">
+      <div className="lq-hide flex flex-wrap items-center justify-center gap-2 text-sm">
         <button
           type="button"
           onClick={() => selectMode('uebung')}
@@ -581,7 +581,7 @@ export default function BegleitGame({ onExit }: { onExit: () => void }) {
       </div>
 
       {/* Skala (nur in der gewerteten Übung) bzw. Song-Hinweis */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="lq-hide flex flex-wrap items-center justify-between gap-3">
         {isSong ? (
           <p className="text-sm text-bone/45">
             Übe-Loop — kein Fortschritt gewertet.{' '}
@@ -621,7 +621,7 @@ export default function BegleitGame({ onExit }: { onExit: () => void }) {
         </button>
       </div>
 
-      <p className="text-center text-sm text-bone/45">
+      <p className="lq-hide text-center text-sm text-bone/45">
         Pro Takt ein Akkord — greif ihn auf die <span className="text-bone/70">Eins</span> und
         wechsle rechtzeitig zum nächsten. Die Töne dürfen in jeder Lage liegen. In der Übung
         wird es schneller und voller, je sicherer du wirst; im Song begleitest du frei mit.

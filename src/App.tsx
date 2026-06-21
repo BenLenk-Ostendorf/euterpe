@@ -121,9 +121,9 @@ export default function App() {
   }
 
   return (
-    <div className="mx-auto flex min-h-full max-w-5xl flex-col items-center gap-8 px-4 py-8">
+    <div className="lq-compact mx-auto flex min-h-full max-w-5xl flex-col items-center gap-8 px-4 py-8">
       <header className="flex w-full items-center justify-between gap-4">
-        <h1 className="font-display text-3xl tracking-wide text-amber-soft">
+        <h1 className="lq-hide font-display text-3xl tracking-wide text-amber-soft">
           Euterpe
         </h1>
         {overlay === 'free' ? <BarIndicator /> : <div className="w-px" />}
@@ -159,7 +159,7 @@ export default function App() {
         ) : overlay === 'notenregen' ? (
           <NotenregenGame onExit={() => setOverlay(null)} />
         ) : overlay === 'free' ? (
-          <div className="flex w-full flex-1 flex-col items-center gap-8">
+          <div className="lq-compact flex w-full flex-1 flex-col items-center gap-8">
             <button
               type="button"
               onClick={exitToTree}
@@ -167,7 +167,7 @@ export default function App() {
             >
               ← Lernpfad
             </button>
-            <div className="flex w-full flex-1 flex-col items-center justify-center gap-10">
+            <div className="lq-compact flex w-full flex-1 flex-col items-center justify-center gap-10">
               <div className="w-full max-w-4xl rounded-xl bg-ink-800/40 p-3 shadow-2xl ring-1 ring-black/40 sm:p-5">
                 <Keyboard fallbackLabels={fallbackLabels} />
               </div>
@@ -185,7 +185,7 @@ export default function App() {
         )}
       </main>
 
-      <footer className="w-full">
+      <footer className="lq-hide w-full">
         <MidiStatus midi={midi} />
       </footer>
     </div>

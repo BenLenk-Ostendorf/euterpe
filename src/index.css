@@ -53,6 +53,28 @@ body {
   border-radius: 4px;
 }
 
+/* Kompakte Quer-Spielansicht: ein flach gehaltenes Handy (Querformat, geringe
+   Hoehe) hat zu wenig vertikalen Platz fuer Titel + Auswahl + Tastatur + Skala.
+   Dann blenden wir die Einrichtungs-Elemente (.lq-hide) aus und straffen den
+   Rhythmus (.lq-compact), sodass Aufgabe/Feedback + Tastatur in die Hoehe passen.
+   Eingestellt wird der Song/die Hand etc. im Hochformat; gedreht wird gespielt. */
+@media (orientation: landscape) and (max-height: 540px) {
+  .lq-hide {
+    display: none !important;
+  }
+  .lq-compact {
+    gap: 0.5rem !important;
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+  }
+  /* Tastatur etwas flacher (quer ist die Hoehe knapp; die Breite traegt die
+     Tastengroesse, nicht die Hoehe). Greift fuer alle Spiel-Klaviaturen. */
+  [aria-label^='Klaviatur'],
+  [aria-label='Bildschirm-Klaviatur'] {
+    height: 7.5rem !important;
+  }
+}
+
 /* Reduced Motion respektieren */
 @media (prefers-reduced-motion: reduce) {
   *,

@@ -484,7 +484,7 @@ export default function VariationGame({ onExit }: { onExit: () => void }) {
       </div>
 
       {/* Skala */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="lq-hide flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2 text-sm">
           {(
             [
@@ -517,7 +517,7 @@ export default function VariationGame({ onExit }: { onExit: () => void }) {
         </button>
       </div>
 
-      <p className="text-center text-sm text-bone/45">
+      <p className="lq-hide text-center text-sm text-bone/45">
         Ein Motiv ist eine kleine Idee — Variieren heißt, sie bewusst umzuformen. Hier
         in festen Regeln (Echo, rückwärts, höher), damit es immer in der Tonart bleibt
         und gut klingt. Der erste Schritt zur eigenen Linie. Kein Zeitdruck, keine Punkte.

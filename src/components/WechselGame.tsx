@@ -301,7 +301,7 @@ export default function WechselGame({ onExit }: { onExit: () => void }) {
       </div>
 
       {/* Skala */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="lq-hide flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2 text-sm">
           {(
             [
@@ -334,7 +334,7 @@ export default function WechselGame({ onExit }: { onExit: () => void }) {
         </button>
       </div>
 
-      <p className="text-center text-sm text-bone/45">
+      <p className="lq-hide text-center text-sm text-bone/45">
         Hör auf den Punkt, an dem sich der Klang „umfärbt" — das ist ein Wechsel.
         Gleiche Harmonie klingt zweimal gleich. Kein Zeitdruck, keine Punkte.
       </p>

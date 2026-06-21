@@ -558,7 +558,7 @@ export default function AkkordgriffGame({ onExit }: { onExit: () => void }) {
       </div>
 
       {/* Skala: erreicht / verinnerlicht / gemeistert */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="lq-hide flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2 text-sm">
           {(
             [
@@ -599,7 +599,7 @@ export default function AkkordgriffGame({ onExit }: { onExit: () => void }) {
         </button>
       </div>
 
-      <p className="text-center text-sm text-bone/45">
+      <p className="lq-hide text-center text-sm text-bone/45">
         Rezept: Grundton → +4 → +3 Halbtöne = Dur, → +3 → +4 = Moll. Es wird
         schwerer, wenn's gut läuft, leichter, wenn's hakt — und Bekanntes wird immer
         wieder eingestreut. Das „als ein Griff"-Messen braucht ein Keyboard (per Maus

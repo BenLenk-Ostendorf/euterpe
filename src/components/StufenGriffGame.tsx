@@ -441,7 +441,7 @@ export default function StufenGriffGame({ onExit }: { onExit: () => void }) {
       </div>
 
       {/* Skala: erreicht / verinnerlicht / gemeistert */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="lq-hide flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2 text-sm">
           {(
             [
@@ -474,7 +474,7 @@ export default function StufenGriffGame({ onExit }: { onExit: () => void }) {
         </button>
       </div>
 
-      <p className="text-center text-sm text-bone/45">
+      <p className="lq-hide text-center text-sm text-bone/45">
         Merksatz: <span className="text-bone/70">I = Grundton</span>,{' '}
         <span className="text-bone/70">IV = vier Tasten höher</span>,{' '}
         <span className="text-bone/70">V = fünf höher</span> — alle drei als Dur-Dreiklang.

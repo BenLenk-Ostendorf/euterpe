@@ -289,7 +289,7 @@ export default function PulsGame({ onExit }: { onExit: () => void }) {
       </div>
 
       {/* Skala */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="lq-hide flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2 text-sm">
           {(
             [
@@ -322,7 +322,7 @@ export default function PulsGame({ onExit }: { onExit: () => void }) {
         </button>
       </div>
 
-      <p className="text-center text-sm text-bone/45">
+      <p className="lq-hide text-center text-sm text-bone/45">
         Der gleichmäßige Puls ist das Fundament jeder Begleitung — er läuft nebenher
         unter allem mit. Kein Zeitdruck im Sinne von Punkten: nur du und der Schlag.
       </p>

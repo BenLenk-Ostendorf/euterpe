@@ -390,7 +390,7 @@ export default function GrundtonGame({ onExit }: { onExit: () => void }) {
       </div>
 
       {/* Skala: erreicht / verinnerlicht / gemeistert */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="lq-hide flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2 text-sm">
           {(
             [
@@ -423,7 +423,7 @@ export default function GrundtonGame({ onExit }: { onExit: () => void }) {
         </button>
       </div>
 
-      <p className="text-center text-sm text-bone/45">
+      <p className="lq-hide text-center text-sm text-bone/45">
         Der Grundton ist der Ton, auf dem ein Lied ruht — er klingt nach „angekommen".
         Erst etabliert eine kleine Kadenz das Zuhause, dann hörst du hin. Die Stufen
         werden feiner, je sicherer du wirst. Kein Zeitdruck, keine Punkte.

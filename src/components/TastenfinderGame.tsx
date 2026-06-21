@@ -273,7 +273,7 @@ export default function TastenfinderGame({ onExit }: { onExit: () => void }) {
       </div>
 
       {/* Hand- und Beschriftungs-Wahl */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="lq-hide flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-1 rounded-full border border-bone/15 p-1 text-sm">
           {(['L', 'R'] as Hand[]).map((h) => (
             <button
@@ -393,7 +393,7 @@ export default function TastenfinderGame({ onExit }: { onExit: () => void }) {
       </div>
 
       {/* Skala: erreicht / verinnerlicht / gemeistert */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="lq-hide flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2 text-sm">
           {(
             [
@@ -447,7 +447,7 @@ export default function TastenfinderGame({ onExit }: { onExit: () => void }) {
         ))}
       </div>
 
-      <p className="text-center text-sm text-bone/45">
+      <p className="lq-hide text-center text-sm text-bone/45">
         Es wird ein Tonname genannt — finde die Taste. Kein Zeitdruck: Ziel ist,
         jede Taste ruhig und ohne Fehler zu treffen. Schalt die Tastennamen ab,
         sobald du dich traust — nur das blinde Finden zählt fürs Lernziel, sonst
