@@ -2,7 +2,7 @@
 // Akkorde relativ zum Grundton (Stufen in Halbtönen): I=0, IV=5, V=7.
 
 import type { NoteName } from './theory'
-import { pitchClassOf } from './theory'
+import { NOTE_NAMES, pitchClassOf } from './theory'
 
 export interface BarChord {
   /** Taktnummer 1–12. */
@@ -40,15 +40,14 @@ export const TWELVE_BAR_BLUES: BarChord[] = PROGRESSION.map((c, i) => ({
   ...c,
 }))
 
-const SHARP_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
-
 /**
  * Konkreter Akkord-Name für eine Tonart, z.B. Takt 5 in A-Moll-Tonart -> "D7".
  * (Der Blues nutzt Dur-Dominantseptakkorde über dem jeweiligen Stufen-Grundton.)
+ * Notennamen kommen aus NOTE_NAMES (deutsch: H/B), damit alles konsistent bleibt.
  */
 export function chordLabelFor(bar: BarChord, key: NoteName): string {
   const pc = (pitchClassOf(key) + bar.rootOffset) % 12
-  return `${SHARP_NAMES[pc]}7`
+  return `${NOTE_NAMES[pc]}7`
 }
 
 /** Akkord-Grundton als Pitch-Class (0–11) in einer Tonart. */

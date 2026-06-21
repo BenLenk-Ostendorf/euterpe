@@ -1,5 +1,12 @@
 // Musiktheoretische Grundlagen — alles intern über MIDI-Notennummern (0–127).
 // Eine MIDI-Note: 60 = C4 (mittleres C). Pitch-Class = midi % 12.
+//
+// Notennamen: DEUTSCHE Konvention. Tonklasse 11 = H (nicht englisch "B"),
+// Tonklasse 10 = B (das englische "Bb"). Schwarze Tasten dazwischen bleiben
+// mit # (C#, D#, F#, G#) — wie auf deutschen Pop-/Leadsheets üblich.
+// NOTE_NAMES ist die einzige Quelle der Wahrheit: pitchClassOf/ALL_KEYS leiten
+// sich per Index davon ab, deshalb darf nur das Label geändert werden, nie die
+// Reihenfolge.
 
 export const NOTE_NAMES = [
   'C',
@@ -12,8 +19,8 @@ export const NOTE_NAMES = [
   'G',
   'G#',
   'A',
-  'A#',
   'B',
+  'H',
 ] as const
 
 export type NoteName = (typeof NOTE_NAMES)[number]

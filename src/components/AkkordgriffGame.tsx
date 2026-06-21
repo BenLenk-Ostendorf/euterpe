@@ -3,7 +3,7 @@ import { onNoteOn, playNote, stopNote } from '../audio/notePlayer'
 import { attack, ensureAudioStarted, release } from '../audio/pianoSampler'
 import { useSessionStore } from '../state/sessionStore'
 import { useProgressStore } from '../state/progressStore'
-import { midiToName } from '../music/theory'
+import { midiToName, NOTE_NAMES } from '../music/theory'
 import KeyboardViewport from './KeyboardViewport'
 
 // Akkordgriff — Challenge für das Lernziel w2 "Du kannst einen Dreiklang greifen".
@@ -149,6 +149,7 @@ export default function AkkordgriffGame({ onExit }: { onExit: () => void }) {
   const gripRef = useRef<Set<string>>(new Set()) // korrekt + blind + als Griff
   const targetRef = useRef<Target>({ rootMidi: 60, q: 'dur', tier: 0, hand: 'R', frontier: true })
   const lastRootRef = useRef(-1)
+  const attemptsRef = useRef(0) // Versuche an der aktuellen Runde (nur der 1. zählt für die Quote)
   const awaitingRef = useRef(false)
   const bufferRef = useRef<{ midi: number; time: number }[]>([])
   const startTimeRef = useRef(0)
@@ -158,6 +159,9 @@ export default function AkkordgriffGame({ onExit }: { onExit: () => void }) {
   const [target, setTargetState] = useState<Target>(targetRef.current)
   const [feedback, setFeedback] = useState<{ kind: 'hit' | 'miss'; text: string; sub?: string } | null>(null)
   const [reveal, setReveal] = useState(false)
+  // Pro-Ton-Rückmeldung nach einem Fehlversuch: welche Tonklassen waren falsch
+  // (rot), welche richtige hattest du schon (grün). Die fehlenden bleiben gold.
+  const [retry, setRetry] = useState<{ wrongPcs: Set<number>; gotPcs: Set<number> } | null>(null)
   const [snap, setSnap] = useState<Snapshot>({
     acc: 0,
     samples: 0,
@@ -227,8 +231,10 @@ export default function AkkordgriffGame({ onExit }: { onExit: () => void }) {
     bufferRef.current = []
     startTimeRef.current = performance.now()
     awaitingRef.current = true
+    attemptsRef.current = 0
     setReveal(false)
     setFeedback(null)
+    setRetry(null)
   }, [pickRound])
 
   const playChord = useCallback((notes: number[]) => {
@@ -270,33 +276,38 @@ export default function AkkordgriffGame({ onExit }: { onExit: () => void }) {
     if (gripActive) meets = meets && gripped
     if (zugigActive) meets = meets && zugigOk
 
-    // Verbuchen: "% richtig" zählt die richtigen Töne (nicht die Griff-Strenge).
-    resultsRef.current.push(correct)
-    if (resultsRef.current.length > ACC_WINDOW) resultsRef.current.shift()
-    const cell = cellKey(t.q, t.tier, t.hand)
-    if (correct) builtRef.current.add(cell)
-    if (correct && blind && gripped) gripRef.current.add(cell)
+    // Nur der ERSTE Versuch jeder Runde zählt für Quote & Adaption — danach darf
+    // man beliebig oft nachgreifen, bis es sitzt, ohne die ehrliche Zahl zu schönen.
+    const firstAttempt = attemptsRef.current === 0
+    attemptsRef.current += 1
 
-    // Anpassung nur an Front-Runden — und nur, wenn die Strenge erfüllt ist.
-    if (t.frontier) {
-      frontierResultsRef.current.push(meets)
-      if (frontierResultsRef.current.length > 8) frontierResultsRef.current.shift()
-      const recent = frontierResultsRef.current.slice(-6)
-      if (recent.length >= 4) {
-        const rate = recent.filter(Boolean).length / recent.length
-        if (rate > 0.8 && frontierRef.current < STAGES.length - 1) {
-          frontierRef.current += 1
-          frontierResultsRef.current = []
-        } else if (rate < 0.5 && frontierRef.current > 0) {
-          frontierRef.current -= 1
-          frontierResultsRef.current = []
+    if (firstAttempt) {
+      // Verbuchen: "% richtig" zählt die richtigen Töne (nicht die Griff-Strenge).
+      resultsRef.current.push(correct)
+      if (resultsRef.current.length > ACC_WINDOW) resultsRef.current.shift()
+      const cell = cellKey(t.q, t.tier, t.hand)
+      if (correct) builtRef.current.add(cell)
+      if (correct && blind && gripped) gripRef.current.add(cell)
+
+      // Anpassung nur an Front-Runden — und nur, wenn die Strenge erfüllt ist.
+      if (t.frontier) {
+        frontierResultsRef.current.push(meets)
+        if (frontierResultsRef.current.length > 8) frontierResultsRef.current.shift()
+        const recent = frontierResultsRef.current.slice(-6)
+        if (recent.length >= 4) {
+          const rate = recent.filter(Boolean).length / recent.length
+          if (rate > 0.8 && frontierRef.current < STAGES.length - 1) {
+            frontierRef.current += 1
+            frontierResultsRef.current = []
+          } else if (rate < 0.5 && frontierRef.current > 0) {
+            frontierRef.current -= 1
+            frontierResultsRef.current = []
+          }
         }
       }
     }
 
-    // Feedback — informiert, bewertet nicht. Richtige Töne sind IMMER grün;
-    // Griff/Tempo sind nur ein Hinweis, kein Fehler. Rot nur bei falschen Tönen.
-    const names = notes.map(midiToName).join(' – ')
+    // Feedback — informiert, bewertet nicht. Griff/Tempo sind nur ein Hinweis.
     if (correct) {
       const sub = gripActive && !gripped
         ? 'Töne stimmen — noch einzeln; probier sie als einen Griff'
@@ -306,18 +317,34 @@ export default function AkkordgriffGame({ onExit }: { onExit: () => void }) {
             ? 'sauber als ein Griff'
             : undefined
       setFeedback({ kind: 'hit', text: 'Richtig', sub })
-    } else {
-      setFeedback({ kind: 'miss', text: `War: ${names}`, sub: undefined })
+      setRetry(null)
+      refreshSnap()
+      timersRef.current.push(setTimeout(() => nextRound(), 850))
+      return
     }
 
-    // Nur bei FALSCHEN Tönen die richtigen zeigen und den Akkord vorspielen.
-    if (!correct) {
-      setReveal(true)
-      playChord(notes)
-    }
-
+    // FALSCH: nicht weiter — zeig pro Ton, was nicht passt, und greif denselben
+    // Akkord nochmal. Rot = der Ton gehört nicht dazu; gold = fehlt noch.
+    const wrongPcs = new Set([...playedPcs].filter((pc) => !targetPcs.has(pc)))
+    const gotPcs = new Set([...playedPcs].filter((pc) => targetPcs.has(pc)))
+    const missing = [...targetPcs].filter((pc) => !playedPcs.has(pc))
+    setRetry({ wrongPcs, gotPcs })
+    const hint = wrongPcs.size
+      ? `${[...wrongPcs].map((pc) => NOTE_NAMES[pc]).join(', ')} ${
+          wrongPcs.size > 1 ? 'gehören' : 'gehört'
+        } nicht dazu`
+      : missing.length
+        ? `es fehlt noch ${missing.map((pc) => NOTE_NAMES[pc]).join(', ')}`
+        : 'fast — noch ein Ton'
+    setFeedback({ kind: 'miss', text: 'Noch nicht — greif denselben Akkord nochmal', sub: hint })
+    setReveal(true) // Zieltöne (gold) zeigen, damit man sieht, was zu greifen ist
+    if (firstAttempt) playChord(notes) // einmal vorspielen, nicht bei jedem Re-try
     refreshSnap()
-    timersRef.current.push(setTimeout(() => nextRound(), correct ? 850 : 1700))
+
+    // Eingabe für DENSELBEN Akkord neu aufnehmen — die Runde bleibt stehen.
+    bufferRef.current = []
+    startTimeRef.current = performance.now()
+    awaitingRef.current = true
   }, [nextRound, playChord, refreshSnap])
 
   // Eingabe sammeln (jede Quelle: MIDI, Klick, Computertastatur).
@@ -465,14 +492,20 @@ export default function AkkordgriffGame({ onExit }: { onExit: () => void }) {
           aria-label={`Klaviatur ${HAND_LABEL[target.hand]}`}
         >
           {whites.map((m, wi) => {
+            const pc = ((m % 12) + 12) % 12
             const active = activeNotes.has(m)
             const isTarget = targetNotes.includes(m)
             const mark = showTarget && isTarget
+            const wrong = retry?.wrongPcs.has(pc) ?? false
+            const got = retry?.gotPcs.has(pc) ?? false
             return (
               <button
                 key={m}
                 type="button"
-                aria-label={midiToName(m) + (mark ? ' (Zielton)' : '')}
+                aria-label={
+                  midiToName(m) +
+                  (wrong ? ' (falsch)' : got ? ' (richtig)' : mark ? ' (Zielton)' : '')
+                }
                 onPointerDown={handleDown(m)}
                 onPointerUp={handleUp(m)}
                 onPointerLeave={handleUp(m)}
@@ -482,11 +515,15 @@ export default function AkkordgriffGame({ onExit }: { onExit: () => void }) {
                   left: `${wi * WHITE_W}%`,
                   width: `${WHITE_W}%`,
                   zIndex: 1,
-                  background: mark
-                    ? 'linear-gradient(180deg,#f4e3bd,#ecd49f)'
-                    : active
-                      ? 'linear-gradient(180deg,#f6ecd8,#e9d9b8)'
-                      : 'linear-gradient(180deg,#fbf6ec,#e7ddca)',
+                  background: wrong
+                    ? 'linear-gradient(180deg,#e7b1a4,#d68a78)'
+                    : got
+                      ? 'linear-gradient(180deg,#c2d4b1,#a7c28f)'
+                      : mark
+                        ? 'linear-gradient(180deg,#f4e3bd,#ecd49f)'
+                        : active
+                          ? 'linear-gradient(180deg,#f6ecd8,#e9d9b8)'
+                          : 'linear-gradient(180deg,#fbf6ec,#e7ddca)',
                   boxShadow: active
                     ? 'inset 0 -3px 10px rgba(176,130,52,0.45)'
                     : 'inset 0 -4px 8px rgba(0,0,0,0.18)',
@@ -509,14 +546,20 @@ export default function AkkordgriffGame({ onExit }: { onExit: () => void }) {
           })}
           {blacks.map((m) => {
             const left = whitesBelow(m) * WHITE_W - (WHITE_W * 0.62) / 2
+            const pc = ((m % 12) + 12) % 12
             const active = activeNotes.has(m)
             const isTarget = targetNotes.includes(m)
             const mark = showTarget && isTarget
+            const wrong = retry?.wrongPcs.has(pc) ?? false
+            const got = retry?.gotPcs.has(pc) ?? false
             return (
               <button
                 key={m}
                 type="button"
-                aria-label={midiToName(m) + (mark ? ' (Zielton)' : '')}
+                aria-label={
+                  midiToName(m) +
+                  (wrong ? ' (falsch)' : got ? ' (richtig)' : mark ? ' (Zielton)' : '')
+                }
                 onPointerDown={handleDown(m)}
                 onPointerUp={handleUp(m)}
                 onPointerLeave={handleUp(m)}
@@ -527,12 +570,22 @@ export default function AkkordgriffGame({ onExit }: { onExit: () => void }) {
                   width: `${WHITE_W * 0.62}%`,
                   height: '62%',
                   zIndex: 2,
-                  background: mark
-                    ? 'linear-gradient(180deg,#7a5c1e,#4a3712)'
-                    : active
-                      ? 'linear-gradient(180deg,#5a4628,#3a2c16)'
-                      : 'linear-gradient(180deg,#2a2420,#0c0a08)',
-                  border: mark ? '1px solid #e0b15e' : '1px solid #000',
+                  background: wrong
+                    ? 'linear-gradient(180deg,#6e3a2e,#46201a)'
+                    : got
+                      ? 'linear-gradient(180deg,#3f5a30,#26361b)'
+                      : mark
+                        ? 'linear-gradient(180deg,#7a5c1e,#4a3712)'
+                        : active
+                          ? 'linear-gradient(180deg,#5a4628,#3a2c16)'
+                          : 'linear-gradient(180deg,#2a2420,#0c0a08)',
+                  border: wrong
+                    ? '1px solid #cf7d6b'
+                    : got
+                      ? '1px solid #9bb88a'
+                      : mark
+                        ? '1px solid #e0b15e'
+                        : '1px solid #000',
                   boxShadow: active
                     ? '0 0 14px rgba(224,177,94,0.5)'
                     : '0 3px 5px rgba(0,0,0,0.5)',
