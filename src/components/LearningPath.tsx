@@ -5,6 +5,7 @@ import {
   CHALLENGE_LABEL,
   STANDALONE_CHALLENGES,
   NODES,
+  SMALL_GOALS,
   PARETO,
   NORDSTERN,
   nodesOf,
@@ -324,18 +325,25 @@ export default function LearningPath({
             Übungen zum Mitspielen
           </p>
           <div className="flex flex-wrap gap-2">
-            {[
-              ...NODES.filter((n) => n.challenge).map((n) => ({
-                id: n.challenge!,
-                sub: n.label,
-                standalone: false,
-              })),
-              ...STANDALONE_CHALLENGES.map((id) => ({
-                id,
-                sub: 'Artefakt, noch keinem Strang zugeordnet',
-                standalone: true,
-              })),
-            ].map(({ id, sub, standalone }) => {
+            {(() => {
+              const seen = new Set<ChallengeId>()
+              const entries: { id: ChallengeId; sub: string; standalone: boolean }[] = []
+              const add = (id: ChallengeId, sub: string, standalone: boolean) => {
+                if (seen.has(id)) return
+                seen.add(id)
+                entries.push({ id, sub, standalone })
+              }
+              NODES.filter((n) => n.challenge).forEach((n) => add(n.challenge!, n.label, false))
+              // Kleine Ziele, die ein eigenes Spiel haben (z. B. Melodien-Detektiv),
+              // aber an keinem Knoten hängen.
+              SMALL_GOALS.filter((g) => g.challenge && g.ready).forEach((g) =>
+                add(g.challenge!, g.label, false),
+              )
+              STANDALONE_CHALLENGES.forEach((id) =>
+                add(id, 'Artefakt, noch keinem Strang zugeordnet', true),
+              )
+              return entries
+            })().map(({ id, sub, standalone }) => {
               const meta = GAME_META[id]
               return (
                 <div

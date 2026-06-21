@@ -13,6 +13,7 @@ export type ChallengeId =
   | 'intervalle'
   | 'wechsel'
   | 'grundton'
+  | 'detektiv'
   | 'pulstap'
   | 'akkordgriff'
   | 'stufengriff'
@@ -26,6 +27,7 @@ export const CHALLENGE_LABEL: Record<ChallengeId, string> = {
   intervalle: 'Intervall-Ohr',
   wechsel: 'Wechsel-Ohr',
   grundton: 'Grundton-Ohr',
+  detektiv: 'Melodien-Detektiv',
   pulstap: 'Puls-Tapper',
   akkordgriff: 'Akkordgriff',
   stufengriff: 'Stufen-Greifer',
@@ -260,7 +262,9 @@ export const SMALL_GOALS: SmallGoal[] = [
     strand: 'gehoer',
     label: 'Melodien-Detektiv',
     detail:
-      'Eine bekannte Melodie (Happy Birthday, ein Zelda-Motiv) ohne Noten am Klavier raushören. Riesiger Aha-Moment. Nutzt Richtung + Intervalle. (Noch zu bauen.)',
+      'Eine bekannte Melodie (Alle meine Entchen, Ode an die Freude) ohne Noten am Klavier raushören und nachspielen. Riesiger Aha-Moment. Nutzt Richtung + Intervalle. Spielbar (▶): kurz → mittel → ganze Zeile.',
+    challenge: 'detektiv',
+    ready: true,
   },
   {
     id: 'goal-ohr',

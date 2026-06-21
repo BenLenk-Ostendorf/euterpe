@@ -126,6 +126,22 @@ export const GAME_META: Record<ChallengeId, GameMeta> = {
     deviceNote: 'Kein Instrument nötig — nur Hören und Knöpfe. Überall spielbar.',
   },
 
+  detektiv: {
+    skill: 'Eine gehörte Melodie ohne Noten am Klavier raushören und nachspielen.',
+    assumptions: [
+      'Melodien raushören ist der Nordstern-nahe Aha-Moment — er beweist dem Lerner, dass das Ohr-Training (Richtung, Intervalle) trägt, und ist hoch motivierend.',
+      'Bekannte Lieder nutzen vorhandenes Melodie-Gedächtnis: man muss nicht erst lernen, wie es klingt, nur WO es auf den Tasten liegt.',
+      'Der gegebene Anfangston nimmt die Orientierungs-Hürde weg und isoliert das eigentliche Können: den nächsten Ton relativ heraushören.',
+      'Note-für-Note-Feedback (grün/rot pro Ton) macht sofort sichtbar, wo das Ohr noch danebenlag — gezieltes statt globales Feedback.',
+      'Steigende Länge (4 → 6–7 → 8 Töne) erhöht die Gedächtnis- und Hörlast graduell.',
+    ],
+    mechanic:
+      'Eine bekannte Melodie erklingt (Anfangston leuchtet als Anker). Du spielst sie Ton für Ton nach; jeder Ton wird sofort gegen den erwarteten geprüft (Tonklasse, Oktave egal). Eine Pip-Reihe färbt sich grün/rot. Stufen: kurze Phrasen → mittlere → ganze Zeile. „Melodie/Anfangston hören" und „Eingabe löschen" jederzeit möglich.',
+    devices: ['klavier', 'pc', 'handy'],
+    deviceNote:
+      'Am MIDI-Klavier am echtesten (Raushören am Instrument); per Maus/Touch über die Bildschirm-Klaviatur ebenso spielbar.',
+  },
+
   pulstap: {
     skill: 'Gleichmäßigen Puls fühlen und auf den Schlag timen.',
     assumptions: [
