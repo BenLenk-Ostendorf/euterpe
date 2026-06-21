@@ -4,6 +4,7 @@ import { attack, ensureAudioStarted, release } from '../audio/pianoSampler'
 import { useSessionStore } from '../state/sessionStore'
 import { useProgressStore } from '../state/progressStore'
 import { midiToName } from '../music/theory'
+import KeyboardViewport from './KeyboardViewport'
 
 // Melodien-Detektiv — das kleine Ziel goal-detektiv (Gehör-Strang): eine bekannte
 // Melodie ohne Noten am Klavier raushören und nachspielen. Der große Aha-Moment,
@@ -386,8 +387,9 @@ export default function MelodieGame({ onExit }: { onExit: () => void }) {
         </div>
 
         {/* Klaviatur — der Anfangston leuchtet als Anker */}
+        <KeyboardViewport base={BASE} span={SPAN} focus={[startNote]} className="mt-2">
         <div
-          className="relative mt-2 h-40 w-full select-none sm:h-48"
+          className="relative h-40 w-full select-none sm:h-48"
           style={{ touchAction: 'none' }}
           role="group"
           aria-label="Klaviatur"
@@ -461,6 +463,7 @@ export default function MelodieGame({ onExit }: { onExit: () => void }) {
             )
           })}
         </div>
+        </KeyboardViewport>
       </div>
 
       {/* Skala */}

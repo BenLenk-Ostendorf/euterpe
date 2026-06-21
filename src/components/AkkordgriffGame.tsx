@@ -4,6 +4,7 @@ import { attack, ensureAudioStarted, release } from '../audio/pianoSampler'
 import { useSessionStore } from '../state/sessionStore'
 import { useProgressStore } from '../state/progressStore'
 import { midiToName } from '../music/theory'
+import KeyboardViewport from './KeyboardViewport'
 
 // Akkordgriff — Challenge für das Lernziel w2 "Du kannst einen Dreiklang greifen".
 //
@@ -456,8 +457,9 @@ export default function AkkordgriffGame({ onExit }: { onExit: () => void }) {
         </div>
 
         {/* Klaviatur (zwei Oktaven der aktuellen Hand) */}
+        <KeyboardViewport base={base} span={24} focus={targetNotes} className="mt-2">
         <div
-          className="relative mt-2 h-40 w-full select-none sm:h-48"
+          className="relative h-40 w-full select-none sm:h-48"
           style={{ touchAction: 'none' }}
           role="group"
           aria-label={`Klaviatur ${HAND_LABEL[target.hand]}`}
@@ -552,6 +554,7 @@ export default function AkkordgriffGame({ onExit }: { onExit: () => void }) {
             )
           })}
         </div>
+        </KeyboardViewport>
       </div>
 
       {/* Skala: erreicht / verinnerlicht / gemeistert */}

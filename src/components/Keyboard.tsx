@@ -6,6 +6,7 @@ import {
   midiToName,
   midiToScientific,
 } from '../music/theory'
+import KeyboardViewport from './KeyboardViewport'
 
 // Bildschirm-Klaviatur, 2 Oktaven C3–C5 (MIDI 48–72).
 const FIRST_MIDI = 48 // C3
@@ -58,10 +59,10 @@ export default function Keyboard({ fallbackLabels }: KeyboardProps) {
   const handleUp = (midi: number) => () => stopNote(midi)
 
   return (
-    <div className="select-none">
+    <KeyboardViewport base={FIRST_MIDI} span={LAST_MIDI - FIRST_MIDI + 1} className="select-none">
       <div
-        className="relative mx-auto w-full"
-        style={{ aspectRatio: `${whiteCount * 1.1} / 5`, touchAction: 'none' }}
+        className="relative h-40 w-full sm:h-48"
+        style={{ touchAction: 'none' }}
         role="group"
         aria-label="Bildschirm-Klaviatur"
       >
@@ -173,6 +174,6 @@ export default function Keyboard({ fallbackLabels }: KeyboardProps) {
           )
         })}
       </div>
-    </div>
+    </KeyboardViewport>
   )
 }

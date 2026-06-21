@@ -4,6 +4,7 @@ import { attack, ensureAudioStarted, release } from '../audio/pianoSampler'
 import { useSessionStore } from '../state/sessionStore'
 import { useProgressStore } from '../state/progressStore'
 import { NOTE_NAMES, midiToScientific } from '../music/theory'
+import KeyboardViewport from './KeyboardViewport'
 
 // Hörtrainer — Challenge für das Lernziel g0 "Du kannst die Richtung einer
 // Melodie hören": geht der nächste Ton hoch, runter oder bleibt gleich?
@@ -441,8 +442,14 @@ export default function HoertrainerGame({ onExit }: { onExit: () => void }) {
                 </span>
               )}
             </p>
+            <KeyboardViewport
+              base={KB_LO}
+              span={KB_HI - KB_LO + 1}
+              focus={startMidi !== null ? [startMidi] : undefined}
+              className="max-w-lg"
+            >
             <div
-              className="relative h-36 w-full max-w-lg select-none sm:h-40"
+              className="relative h-36 w-full select-none sm:h-40"
               style={{ touchAction: 'none' }}
               role="group"
               aria-label="Klaviatur"
@@ -525,6 +532,7 @@ export default function HoertrainerGame({ onExit }: { onExit: () => void }) {
                 )
               })}
             </div>
+            </KeyboardViewport>
           </>
         ) : (
           <>

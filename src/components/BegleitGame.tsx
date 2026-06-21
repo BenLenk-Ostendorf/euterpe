@@ -11,6 +11,7 @@ import {
   chordTriadMidi,
   type SongChord,
 } from '../music/songs'
+import KeyboardViewport from './KeyboardViewport'
 
 // Begleit-Tapper — Challenge für Node ak2 „Im 4/4 begleiten" (und das kleine
 // Ziel goal-kadenz „Kadenz-Loop"). Ein Metronom läuft; pro Takt ein Akkord.
@@ -478,8 +479,9 @@ export default function BegleitGame({ onExit }: { onExit: () => void }) {
         </div>
 
         {/* Klaviatur (zwei Oktaven ab C4) */}
+        <KeyboardViewport base={BASE} span={SPAN} focus={targetNotes} className="mt-2">
         <div
-          className="relative mt-2 h-40 w-full select-none sm:h-48"
+          className="relative h-40 w-full select-none sm:h-48"
           style={{ touchAction: 'none' }}
           role="group"
           aria-label="Klaviatur"
@@ -565,6 +567,7 @@ export default function BegleitGame({ onExit }: { onExit: () => void }) {
             )
           })}
         </div>
+        </KeyboardViewport>
 
         <div className="mt-3 flex items-center justify-center">
           <button

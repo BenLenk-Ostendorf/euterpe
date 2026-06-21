@@ -4,6 +4,7 @@ import { attack, ensureAudioStarted, release } from '../audio/pianoSampler'
 import { useSessionStore } from '../state/sessionStore'
 import { useProgressStore } from '../state/progressStore'
 import { midiToName, NOTE_NAMES } from '../music/theory'
+import KeyboardViewport from './KeyboardViewport'
 
 // Stufen-Greifer — Challenge für Node ak1 „I · IV · V" (die drei Hauptakkorde).
 //
@@ -348,8 +349,9 @@ export default function StufenGriffGame({ onExit }: { onExit: () => void }) {
         </div>
 
         {/* Klaviatur (zwei Oktaven ab C4) */}
+        <KeyboardViewport base={BASE} span={SPAN} focus={targetNotes} className="mt-2">
         <div
-          className="relative mt-2 h-40 w-full select-none sm:h-48"
+          className="relative h-40 w-full select-none sm:h-48"
           style={{ touchAction: 'none' }}
           role="group"
           aria-label="Klaviatur"
@@ -435,6 +437,7 @@ export default function StufenGriffGame({ onExit }: { onExit: () => void }) {
             )
           })}
         </div>
+        </KeyboardViewport>
       </div>
 
       {/* Skala: erreicht / verinnerlicht / gemeistert */}

@@ -5,6 +5,7 @@ import { useSessionStore } from '../state/sessionStore'
 import { useProgressStore } from '../state/progressStore'
 import { midiToName } from '../music/theory'
 import { SONGS, type Song } from '../music/songs'
+import KeyboardViewport from './KeyboardViewport'
 
 // Stück-Trainer — Challenge für Node k0 „Eine Hand sicher" (Koordination).
 //
@@ -391,8 +392,14 @@ export default function StueckTrainerGame({ onExit }: { onExit: () => void }) {
         </div>
 
         {/* Klaviatur — im Führungs-Modus leuchtet die nächste Taste */}
+        <KeyboardViewport
+          base={BASE}
+          span={SPAN}
+          focus={expectedMidi !== undefined ? [expectedMidi] : undefined}
+          className="mt-2"
+        >
         <div
-          className="relative mt-2 h-40 w-full select-none sm:h-48"
+          className="relative h-40 w-full select-none sm:h-48"
           style={{ touchAction: 'none' }}
           role="group"
           aria-label="Klaviatur"
@@ -476,6 +483,7 @@ export default function StueckTrainerGame({ onExit }: { onExit: () => void }) {
             )
           })}
         </div>
+        </KeyboardViewport>
       </div>
 
       {/* Skala */}

@@ -4,6 +4,7 @@ import { attack, ensureAudioStarted, release } from '../audio/pianoSampler'
 import { useSessionStore } from '../state/sessionStore'
 import { useProgressStore } from '../state/progressStore'
 import { midiToName } from '../music/theory'
+import KeyboardViewport from './KeyboardViewport'
 
 // Motiv-Variieren — Challenge für Node im2 „Variieren" (Improv-Strang). Ein
 // kurzes Motiv erklingt; du spielst es VERÄNDERT zurück: als Echo (gleich),
@@ -403,8 +404,9 @@ export default function VariationGame({ onExit }: { onExit: () => void }) {
         </div>
 
         {/* Klaviatur — der erste Zielton leuchtet als Anker */}
+        <KeyboardViewport base={BASE} span={SPAN} focus={[startNote]} className="mt-2">
         <div
-          className="relative mt-2 h-40 w-full select-none sm:h-48"
+          className="relative h-40 w-full select-none sm:h-48"
           style={{ touchAction: 'none' }}
           role="group"
           aria-label="Klaviatur"
@@ -478,6 +480,7 @@ export default function VariationGame({ onExit }: { onExit: () => void }) {
             )
           })}
         </div>
+        </KeyboardViewport>
       </div>
 
       {/* Skala */}
