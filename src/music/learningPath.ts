@@ -12,6 +12,7 @@ export type ChallengeId =
   | 'durmoll'
   | 'intervalle'
   | 'wechsel'
+  | 'grundton'
   | 'pulstap'
   | 'akkordgriff'
   | 'stufengriff'
@@ -23,6 +24,7 @@ export const CHALLENGE_LABEL: Record<ChallengeId, string> = {
   durmoll: 'Dur/Moll-Ohr',
   intervalle: 'Intervall-Ohr',
   wechsel: 'Wechsel-Ohr',
+  grundton: 'Grundton-Ohr',
   pulstap: 'Puls-Tapper',
   akkordgriff: 'Akkordgriff',
   stufengriff: 'Stufen-Greifer',
@@ -138,7 +140,9 @@ export const NODES: PathNode[] = [
     label: 'Grundton · Stufen',
     tag: 'Stufen denken',
     detail:
-      'Auf welchem Ton ruht das Lied (Grundton)? Welche Stufe ist ein Ton? Die feine, mächtige Gehör-Ebene, die Gehör und Wissen verschmilzt.',
+      'Auf welchem Ton ruht das Lied (Grundton)? Wann ist es „zu Hause"? Die feine, mächtige Gehör-Ebene, die Gehör und Wissen verschmilzt. Stufen: Grundton erkennen → Auflösung hören → Grundton aus drei Tönen finden.',
+    challenge: 'grundton',
+    progressId: 'gs',
   },
 
   // ── Improvisation ──────────────────────────────────────────────────────

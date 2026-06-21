@@ -112,6 +112,20 @@ export const GAME_META: Record<ChallengeId, GameMeta> = {
     deviceNote: 'Kein Instrument nötig — Hören und auswählen. Überall spielbar.',
   },
 
+  grundton: {
+    skill: 'Den Grundton (Tonika / „Zuhause") einer Tonart heraushören und Auflösung spüren.',
+    assumptions: [
+      'Das Grundton-/Stufengefühl ist die Brücke zwischen „Richtung hören" und echtem Raushören — wer Zuhause hört, kann Melodien verorten.',
+      'Eine kurze Kadenz vorweg etabliert die Tonart eindeutig, sodass wirklich das Stufen-Hören (nicht Absolut-Gehör) trainiert wird.',
+      'Die wandernde Tonart (Grundton springt jede Runde) verhindert Absolut-Merken und erzwingt relatives Hören.',
+      'Die Stufung (Grundton erkennen → Auflösung spüren → Grundton aus 3 Tönen finden) geht von binär/leicht zu fein und 1-aus-3, damit nicht durch Raten bestanden wird.',
+    ],
+    mechanic:
+      'Eine I–IV–V–I-Kadenz macht das „Zuhause" hörbar, dann kommt die Aufgabe: Stufe 1 — ist der letzte Ton der Grundton? (Ja/Nein). Stufe 2 — ist die Phrase aufgelöst oder hängt sie offen? (Ja/Nein). Stufe 3 — welcher von drei Tönen ist der Grundton? Feedback nennt die gehörte Stufe.',
+    devices: ['klavier', 'pc', 'handy'],
+    deviceNote: 'Kein Instrument nötig — nur Hören und Knöpfe. Überall spielbar.',
+  },
+
   pulstap: {
     skill: 'Gleichmäßigen Puls fühlen und auf den Schlag timen.',
     assumptions: [

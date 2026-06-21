@@ -24,6 +24,7 @@ import HoertrainerGame from './components/HoertrainerGame'
 import DurMollGame from './components/DurMollGame'
 import IntervallGame from './components/IntervallGame'
 import WechselGame from './components/WechselGame'
+import GrundtonGame from './components/GrundtonGame'
 import PulsGame from './components/PulsGame'
 import AkkordgriffGame from './components/AkkordgriffGame'
 import StufenGriffGame from './components/StufenGriffGame'
@@ -135,6 +136,8 @@ export default function App() {
           <IntervallGame onExit={() => setOverlay(null)} />
         ) : overlay === 'wechsel' ? (
           <WechselGame onExit={() => setOverlay(null)} />
+        ) : overlay === 'grundton' ? (
+          <GrundtonGame onExit={() => setOverlay(null)} />
         ) : overlay === 'pulstap' ? (
           <PulsGame onExit={() => setOverlay(null)} />
         ) : overlay === 'akkordgriff' ? (
